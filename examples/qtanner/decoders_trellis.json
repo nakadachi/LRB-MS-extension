@@ -1,0 +1,9 @@
+[
+ {
+  "name": "Exact GC / trellis (vertex GCs)",
+  "kind": "lrbms",
+  "groups": "vertex",
+  "msf": 0.75,
+  "gc_method": "trellis"
+ }
+]

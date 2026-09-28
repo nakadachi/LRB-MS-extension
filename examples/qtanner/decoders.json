@@ -1,0 +1,51 @@
+[
+ {
+  "name": "BP (min-sum)",
+  "kind": "bp",
+  "msf": 0.75
+ },
+ {
+  "name": "BP+OSD-CS7",
+  "kind": "bposd",
+  "msf": 0.75,
+  "osd_method": "osd_cs",
+  "osd_order": 7
+ },
+ {
+  "name": "BP(product-sum)+OSD-CS7",
+  "kind": "bposd",
+  "bp_method": "product_sum",
+  "osd_method": "osd_cs",
+  "osd_order": 7
+ },
+ {
+  "name": "LRB-MS-0 (vertex GCs)",
+  "kind": "lrbms",
+  "groups": "vertex",
+  "msf": 0.75,
+  "t": 0
+ },
+ {
+  "name": "LRB-MS-8 (vertex GCs)",
+  "kind": "lrbms",
+  "groups": "vertex",
+  "msf": 0.75,
+  "t": 8
+ },
+ {
+  "name": "LRB-MS-8 (greedy ell=9)",
+  "kind": "lrbms",
+  "groups": 9,
+  "msf": 0.75,
+  "t": 8
+ },
+ {
+  "name": "LRB-MS-8+OSD-CS7 (vertex GCs)",
+  "kind": "lrbms",
+  "groups": "vertex",
+  "msf": 0.75,
+  "t": 8,
+  "osd_method": "osd_cs",
+  "osd_order": 7
+ }
+]
