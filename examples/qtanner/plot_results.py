@@ -24,10 +24,17 @@ def wilson(k, n, z=1.96):
     return max(mid - half, 0.0), mid + half
 
 
+# greedy overlap grouping with ell=9 recovers exactly the vertex groups on these codes,
+# so its curves coincide with "LRB-MS-8 (vertex GCs)"; it stays in the table only
+PLOT_EXCLUDE = {"LRB-MS-8 (greedy ell=9)"}
+
+
 def main(path="results.json", codes_path="codes.json", out="qtanner_benchmark.png"):
     res = json.load(open(path))
     codes = [c["label"] for c in json.load(open(codes_path))]
     decoders = list(dict.fromkeys(r["decoder"] for r in res))
+    table_decoders = decoders
+    decoders = [d for d in decoders if d not in PLOT_EXCLUDE]
     color = {d: SLOTS[i % len(SLOTS)] for i, d in enumerate(decoders)}
     style = {d: ("--" if d.startswith("BP") else "-") for d in decoders}
 
@@ -78,7 +85,7 @@ def main(path="results.json", codes_path="codes.json", out="qtanner_benchmark.pn
         lines.append(f"\n**{code}**: logical error rate (failures/shots), mean decode time\n")
         lines.append("| decoder | " + " | ".join(f"p={p}" for p in ps) + " |")
         lines.append("|---" * (len(ps) + 1) + "|")
-        for d in decoders:
+        for d in table_decoders:
             cells = []
             for p in ps:
                 r = next((r for r in res if r["code"] == code and r["decoder"] == d and r["p"] == p), None)
