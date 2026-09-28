@@ -50,6 +50,7 @@ struct GeneralizedCheck {
     std::vector<int> rows;      // global row indices
     std::vector<int> support;   // global column indices (sorted, unique)
     int ell = 0;                // number of rows
+    int rank = 0;               // GF(2) rank of the local rows
     int nwords = 0;             // 64-bit words per local row bitset
     std::vector<uint64_t> row_bits;  // ell * nwords, local row bitsets
     std::vector<uint64_t> col_masks; // per local column: ell-bit mask (TRELLIS only, ell <= 63)
@@ -160,6 +161,22 @@ public:
                     gc.row_bits[(size_t) i * gc.nwords + (k >> 6)] |= (1ULL << (k & 63));
                 }
             }
+            {   // GF(2) rank of the group's rows
+                std::vector<uint64_t> T(gc.row_bits);
+                int rk = 0;
+                for (int k = 0; k < s && rk < gc.ell; k++) {
+                    int w = k >> 6; uint64_t bit = 1ULL << (k & 63);
+                    int piv = -1;
+                    for (int i = rk; i < gc.ell; i++) if (T[(size_t) i * gc.nwords + w] & bit) { piv = i; break; }
+                    if (piv < 0) continue;
+                    for (int q = 0; q < gc.nwords; q++) std::swap(T[(size_t) piv * gc.nwords + q], T[(size_t) rk * gc.nwords + q]);
+                    for (int i = 0; i < gc.ell; i++)
+                        if (i != rk && (T[(size_t) i * gc.nwords + w] & bit))
+                            for (int q = 0; q < gc.nwords; q++) T[(size_t) i * gc.nwords + q] ^= T[(size_t) rk * gc.nwords + q];
+                    rk++;
+                }
+                gc.rank = rk;
+            }
             if (gc.ell <= 63) {
                 gc.col_masks.assign(s, 0ULL);
                 for (int i = 0; i < gc.ell; i++)
@@ -262,7 +279,8 @@ public:
     // --------------------------------------------------------- GC updates
     void gc_update(const GeneralizedCheck &gc, const std::vector<uint8_t> &synd,
                    const std::vector<double> &in, std::vector<double> &out) {
-        if (gc_method == TRELLIS) trellis_update(gc, synd, in, out);
+        if (gc.ell == 1) single_check_update(gc, synd, in, out);
+        else if (gc_method == TRELLIS) trellis_update(gc, synd, in, out);
         else lrbms_update(gc, synd, in, out);
         for (auto &x: out) {
             x *= ms_scaling_factor;
@@ -292,9 +310,20 @@ public:
             absl[k] = std::fabs(lam[k]);
             hard[k] = lam[k] < 0.0 ? 1 : 0;
         }
+        // min-heap on (|lambda|, index): positions are popped in increasing reliability only as
+        // far as needed (rank of H_c for the elimination, plus t for the order-2 list)
+        auto less_rel = [&](int a, int b) { return absl[a] < absl[b] || (absl[a] == absl[b] && a < b); };
+        auto heap_cmp = [&](int a, int b) { return less_rel(b, a); };
         order_buf.resize(s);
         std::iota(order_buf.begin(), order_buf.end(), 0);
-        std::stable_sort(order_buf.begin(), order_buf.end(), [&](int a, int b) { return absl[a] < absl[b]; });
+        std::make_heap(order_buf.begin(), order_buf.end(), heap_cmp);
+        auto pop_least = [&]() {
+            std::pop_heap(order_buf.begin(), order_buf.end(), heap_cmp);
+            int k = order_buf.back();
+            order_buf.pop_back();
+            return k;
+        };
+        nonpivots.clear();
 
         // reliability-ordered Gaussian elimination -> least reliable basis
         R.assign(gc.row_bits.begin(), gc.row_bits.end());
@@ -302,13 +331,13 @@ public:
         is_pivot.assign(s, 0);
         pivot_of_row.assign(L, -1);
         int r = 0;
-        for (int idx = 0; idx < s && r < L; idx++) {
-            int k = order_buf[idx];
+        while (r < gc.rank && !order_buf.empty()) {
+            int k = pop_least();
             int w = k >> 6;
             uint64_t bit = 1ULL << (k & 63);
             int piv = -1;
             for (int i = r; i < L; i++) if (R[(size_t) i * W + w] & bit) { piv = i; break; }
-            if (piv < 0) continue;
+            if (piv < 0) { nonpivots.push_back(k); continue; }
             if (piv != r) {
                 for (int q = 0; q < W; q++) std::swap(R[(size_t) piv * W + q], R[(size_t) r * W + q]);
                 std::swap(sb[piv], sb[r]);
@@ -329,6 +358,12 @@ public:
                 return;
             }
         }
+        // non-pivot positions: the t least reliable in order, the rest in any order
+        {
+            int need = lrbms_order;
+            while ((int) nonpivots.size() < need && !order_buf.empty()) nonpivots.push_back(pop_least());
+            for (int k: order_buf) nonpivots.push_back(k);
+        }
 
         // e0: MRB = hard decisions, LRB solved from syndrome
         hmask.assign(W, 0ULL);
@@ -345,31 +380,30 @@ public:
             if (e0[p] != hard[p]) cost0 += absl[p];
         }
 
-        best0.assign(s, INF);
-        best1.assign(s, INF);
-        cur.assign(e0.begin(), e0.end());
+        if (L <= 64) {
+            lrbms_score_fast(s, W, r, cost0, out);
+            return;
+        }
 
-        auto score_current = [&](double cost) {
-            candidate_evaluations++;
-            for (int k = 0; k < s; k++) {
-                double ext = cost - (cur[k] != hard[k] ? absl[k] : 0.0);
-                if (cur[k]) { if (ext < best1[k]) best1[k] = ext; }
-                else { if (ext < best0[k]) best0[k] = ext; }
-            }
-        };
-        auto apply_diff = [&](double &cost) {
+        // ---- build candidate list as difference sets relative to e0 ----
+        // candidate 0 is e0 itself (empty diff)
+        cand_cost.clear();
+        cand_ptr.clear();
+        cand_idx.clear();
+        cand_ptr.push_back(0);
+        cand_cost.push_back(cost0);
+        cand_ptr.push_back(0);
+
+        auto push_candidate = [&]() {
+            double cost = cost0;
             for (int k: diff) {
-                cost += (cur[k] != hard[k]) ? -absl[k] : absl[k];
-                cur[k] ^= 1;
+                cost += (e0[k] != hard[k]) ? -absl[k] : absl[k];
+                cand_idx.push_back(k);
             }
+            cand_cost.push_back(cost);
+            cand_ptr.push_back((int) cand_idx.size());
         };
-        auto revert_diff = [&]() { for (int k: diff) cur[k] ^= 1; };
 
-        score_current(cost0);
-
-        // non-pivot positions in increasing reliability
-        nonpivots.clear();
-        for (int idx = 0; idx < s; idx++) if (!is_pivot[order_buf[idx]]) nonpivots.push_back(order_buf[idx]);
 
         // order-1 re-encodings
         for (int j: nonpivots) {
@@ -378,10 +412,7 @@ public:
             uint64_t bit = 1ULL << (j & 63);
             int w = j >> 6;
             for (int i = 0; i < r; i++) if (R[(size_t) i * W + w] & bit) diff.push_back(pivot_of_row[i]);
-            double cost = cost0;
-            apply_diff(cost);
-            score_current(cost);
-            revert_diff();
+            push_candidate();
         }
         // order-2 re-encodings among the t least reliable MRB positions
         int t = std::min<int>(lrbms_order, (int) nonpivots.size());
@@ -397,21 +428,189 @@ public:
                     bool x = ((R[(size_t) i * W + w1] & b1) != 0) ^ ((R[(size_t) i * W + w2] & b2) != 0);
                     if (x) diff.push_back(pivot_of_row[i]);
                 }
-                double cost = cost0;
-                apply_diff(cost);
-                score_current(cost);
-                revert_diff();
+                push_candidate();
             }
+        }
+        const int nc = (int) cand_cost.size();
+        candidate_evaluations += nc;
+
+        // ---- extrinsic minima in O(sum |diff| + s) ----
+        // flip_min[k]: best cost among candidates that flip k relative to e0
+        // keep_min[k]: best cost among candidates that keep e0[k]
+        flip_min.assign(s, INF);
+        keep_min.assign(s, INF);
+        for (int c = 1; c < nc; c++) {
+            double cc = cand_cost[c];
+            for (int q = cand_ptr[c]; q < cand_ptr[c + 1]; q++) {
+                int k = cand_idx[q];
+                if (cc < flip_min[k]) flip_min[k] = cc;
+            }
+        }
+        // keep_min: scan candidates in increasing cost; each resolves the positions it does not flip
+        cand_order.resize(nc);
+        std::iota(cand_order.begin(), cand_order.end(), 0);
+        std::sort(cand_order.begin(), cand_order.end(), [&](int x, int y) { return cand_cost[x] < cand_cost[y]; });
+        unresolved.resize(s);
+        std::iota(unresolved.begin(), unresolved.end(), 0);
+        stamp.assign(s, -1);
+        for (int oc = 0; oc < nc && !unresolved.empty(); oc++) {
+            int c = cand_order[oc];
+            for (int q = cand_ptr[c]; q < cand_ptr[c + 1]; q++) stamp[cand_idx[q]] = c;
+            int keep = 0;
+            for (int u = 0; u < (int) unresolved.size(); u++) {
+                int k = unresolved[u];
+                if (stamp[k] == c) unresolved[keep++] = k;   // flipped by c: stays unresolved
+                else keep_min[k] = cand_cost[c];
+            }
+            unresolved.resize(keep);
         }
 
         for (int k = 0; k < s; k++) {
-            bool f0 = best0[k] < INF, f1 = best1[k] < INF;
-            if (f0 && f1) out[k] = best1[k] - best0[k];
+            // own contribution removed: [value != hard] * |lambda_k|
+            uint8_t v_keep = e0[k], v_flip = e0[k] ^ 1;
+            double ek = keep_min[k] < INF ? keep_min[k] - (v_keep != hard[k] ? absl[k] : 0.0) : INF;
+            double ef = flip_min[k] < INF ? flip_min[k] - (v_flip != hard[k] ? absl[k] : 0.0) : INF;
+            double m0 = v_keep == 0 ? ek : ef;
+            double m1 = v_keep == 0 ? ef : ek;
+            bool f0 = m0 < INF, f1 = m1 < INF;
+            if (f0 && f1) out[k] = m1 - m0;
             else if (f0) out[k] = llr_clip;   // bit forced to 0 by the local syndrome
             else if (f1) out[k] = -llr_clip;  // bit forced to 1
             else out[k] = 0.0;
         }
     }
+
+    // Candidate scoring for ell <= 64: each candidate is (base positions, pivot-row mask).
+    // Costs, flip minima and keep minima are computed without materialising candidate vectors.
+    std::vector<uint64_t> colrow;          // per local column: mask of pivot rows containing it
+    std::vector<double> delta, pdelta;     // cost change for flipping position k / pivot of row i
+    std::vector<uint64_t> cand_rm;         // candidate pivot-row masks
+    std::vector<int> cand_j1, cand_j2;     // candidate base positions (-1 = none)
+
+    void lrbms_score_fast(int s, int W, int r, double cost0, std::vector<double> &out) {
+        const double INF = std::numeric_limits<double>::infinity();
+        delta.resize(s);
+        for (int k = 0; k < s; k++) delta[k] = (e0[k] != hard[k]) ? -absl[k] : absl[k];
+        pdelta.resize(r);
+        for (int i = 0; i < r; i++) pdelta[i] = delta[pivot_of_row[i]];
+
+        // column -> pivot-row incidence of the reduced matrix (non-pivot columns only)
+        colrow.assign(s, 0ULL);
+        for (int i = 0; i < r; i++) {
+            const uint64_t rb = 1ULL << i;
+            for (int q = 0; q < W; q++) {
+                uint64_t word = R[(size_t) i * W + q];
+                while (word) {
+                    int k = (q << 6) + __builtin_ctzll(word);
+                    word &= word - 1;
+                    colrow[k] |= rb;
+                }
+            }
+        }
+        for (int i = 0; i < r; i++) colrow[pivot_of_row[i]] = 0ULL;
+
+        auto rm_cost = [&](uint64_t rm) {
+            double c = 0.0;
+            while (rm) { c += pdelta[__builtin_ctzll(rm)]; rm &= rm - 1; }
+            return c;
+        };
+
+        cand_cost.clear(); cand_rm.clear(); cand_j1.clear(); cand_j2.clear();
+        cand_cost.push_back(cost0); cand_rm.push_back(0ULL); cand_j1.push_back(-1); cand_j2.push_back(-1);
+
+        for (int j: nonpivots) {
+            uint64_t rm = colrow[j];
+            cand_cost.push_back(cost0 + delta[j] + rm_cost(rm));
+            cand_rm.push_back(rm); cand_j1.push_back(j); cand_j2.push_back(-1);
+        }
+        int t = std::min<int>(lrbms_order, (int) nonpivots.size());
+        for (int a = 0; a < t; a++) {
+            for (int b = a + 1; b < t; b++) {
+                int j1 = nonpivots[a], j2 = nonpivots[b];
+                uint64_t rm = colrow[j1] ^ colrow[j2];
+                cand_cost.push_back(cost0 + delta[j1] + delta[j2] + rm_cost(rm));
+                cand_rm.push_back(rm); cand_j1.push_back(j1); cand_j2.push_back(j2);
+            }
+        }
+        const int nc = (int) cand_cost.size();
+        candidate_evaluations += nc;
+
+        // flip minima
+        flip_min.assign(s, INF);
+        int cbest = 0;
+        for (int c = 0; c < nc; c++) {
+            double cc = cand_cost[c];
+            if (cc < cand_cost[cbest]) cbest = c;
+            if (c == 0) continue;
+            if (cc < flip_min[cand_j1[c]]) flip_min[cand_j1[c]] = cc;
+            if (cand_j2[c] >= 0 && cc < flip_min[cand_j2[c]]) flip_min[cand_j2[c]] = cc;
+            uint64_t rm = cand_rm[c];
+            while (rm) {
+                int k = pivot_of_row[__builtin_ctzll(rm)];
+                rm &= rm - 1;
+                if (cc < flip_min[k]) flip_min[k] = cc;
+            }
+        }
+        // keep minima: the global best keeps every position it does not flip
+        const double dbest = cand_cost[cbest];
+        keep_min.assign(s, dbest);
+        auto keep_scan_base = [&](int j) {
+            double m = INF;
+            for (int c = 0; c < nc; c++)
+                if (cand_j1[c] != j && cand_j2[c] != j && cand_cost[c] < m) m = cand_cost[c];
+            keep_min[j] = m;
+        };
+        if (cand_j1[cbest] >= 0) keep_scan_base(cand_j1[cbest]);
+        if (cand_j2[cbest] >= 0) keep_scan_base(cand_j2[cbest]);
+        uint64_t rmb = cand_rm[cbest];
+        while (rmb) {
+            int i = __builtin_ctzll(rmb);
+            rmb &= rmb - 1;
+            const uint64_t bit = 1ULL << i;
+            double m = INF;
+            for (int c = 0; c < nc; c++)
+                if (!(cand_rm[c] & bit) && cand_cost[c] < m) m = cand_cost[c];
+            keep_min[pivot_of_row[i]] = m;
+        }
+
+        for (int k = 0; k < s; k++) {
+            uint8_t v_keep = e0[k], v_flip = e0[k] ^ 1;
+            double ek = keep_min[k] < INF ? keep_min[k] - (v_keep != hard[k] ? absl[k] : 0.0) : INF;
+            double ef = flip_min[k] < INF ? flip_min[k] - (v_flip != hard[k] ? absl[k] : 0.0) : INF;
+            double m0 = v_keep == 0 ? ek : ef;
+            double m1 = v_keep == 0 ? ef : ek;
+            bool f0 = m0 < INF, f1 = m1 < INF;
+            if (f0 && f1) out[k] = m1 - m0;
+            else if (f0) out[k] = llr_clip;
+            else if (f1) out[k] = -llr_clip;
+            else out[k] = 0.0;
+        }
+    }
+
+    // exact min-sum for a single parity check (ell == 1)
+    void single_check_update(const GeneralizedCheck &gc, const std::vector<uint8_t> &synd,
+                             const std::vector<double> &lam, std::vector<double> &out) {
+        const int s = (int) gc.support.size();
+        double min1 = std::numeric_limits<double>::infinity(), min2 = min1;
+        int idx = -1;
+        int par = synd[0] & 1;
+        for (int k = 0; k < s; k++) {
+            double a = std::fabs(lam[k]);
+            if (lam[k] < 0.0) par ^= 1;
+            if (a < min1) { min2 = min1; min1 = a; idx = k; }
+            else if (a < min2) min2 = a;
+        }
+        candidate_evaluations += s;
+        for (int k = 0; k < s; k++) {
+            int pk = par ^ (lam[k] < 0.0 ? 1 : 0);   // parity of the other hard decisions (+ syndrome)
+            double mag = (k == idx) ? min2 : min1;
+            if (s == 1) mag = llr_clip;               // weight-1 check: bit fully determined
+            out[k] = pk ? -mag : mag;
+        }
+    }
+
+    std::vector<double> cand_cost, flip_min, keep_min;
+    std::vector<int> cand_ptr, cand_idx, cand_order, unresolved, stamp;
 
     std::vector<double> F, Bcur, Bnext;
 
