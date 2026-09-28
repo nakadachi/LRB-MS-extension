@@ -4,6 +4,8 @@ from libcpp cimport bool
 from libcpp.vector cimport vector
 cimport numpy as np
 ctypedef np.uint8_t uint8_t
+from ldpc.bp_decoder._bp_decoder cimport BpSparse
+from ldpc.bposd_decoder._bposd_decoder cimport OsdDecoderCpp, OsdMethod, OSD_OFF, OSD_0, EXHAUSTIVE, COMBINATION_SWEEP
 
 cdef extern from "lrbms.hpp" namespace "ldpc::lrbms":
 
@@ -53,3 +55,9 @@ cdef class LrbmsDecoder:
     cdef vector[uint8_t] _syndrome
     cdef object _check_groups
     cdef bool MEMORY_ALLOCATED
+    cdef BpSparse* pcm_bp
+    cdef OsdDecoderCpp* osdD
+    cdef vector[double] _osd_channel
+    cdef vector[double] _llr
+    cdef bool OSD_ALLOCATED
+    cdef bool _osd_used

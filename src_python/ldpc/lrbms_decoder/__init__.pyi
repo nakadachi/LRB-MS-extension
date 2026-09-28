@@ -46,6 +46,12 @@ class LrbmsDecoder:
         Magnitude clip for messages (also used for locally forced bits).
     max_trellis_ell : int
         Largest group size accepted by the trellis method.
+    osd_method : str
+        OSD post-processing applied when LRB-MS does not converge:
+        ``'off'`` (default), ``'osd_0'``, ``'osd_cs'`` (combination sweep) or ``'osd_e'``.
+        Uses the LRB-MS posterior LLRs as soft input, like ``BpOsdDecoder``.
+    osd_order : int
+        OSD order (ignored for ``'osd_0'``).
     """
 
     def __cinit__(self, pcm,
@@ -59,6 +65,8 @@ class LrbmsDecoder:
                   schedule="parallel",
                   llr_clip=50.0,
                   max_trellis_ell=22,
+                  osd_method="off",
+                  osd_order=0,
                   **kwargs): ...
 
     def __dealloc__(self): ...
@@ -136,11 +144,26 @@ class LrbmsDecoder:
     def llr_clip(self, value) -> None: ...
 
     @property
-    def decoding(self) -> np.ndarray: ...
+    def decoding(self) -> np.ndarray:
+        """Final output of the last decode (OSD result if the fallback was used)."""
 
     @property
     def log_prob_ratios(self) -> np.ndarray:
         """Posterior LLRs log(P(e_j=0)/P(e_j=1)) after the last decode."""
+
+    @property
+    def osd_method(self) -> str: ...
+
+    @property
+    def osd_order(self) -> int: ...
+
+    @property
+    def osd_used(self) -> bool:
+        """True if the last decode fell back to OSD (LRB-MS did not converge)."""
+
+    @property
+    def lrbms_decoding(self) -> np.ndarray:
+        """Hard decision of LRB-MS alone for the last decode (before any OSD fallback)."""
 
     @property
     def converge(self) -> bool: ...

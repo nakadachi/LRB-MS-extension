@@ -192,3 +192,51 @@ def test_bb144_generalized_checks_do_not_hurt():
         gc.decode(s)
         fail_gc += not gc.converge
     assert fail_gc <= fail_ms + 5
+
+
+# ------------------------------------------------------------- OSD fallback
+
+def test_osd_fallback_always_satisfies_syndrome():
+    H = bb_code_144()
+    n = H.shape[1]
+    p = 0.06
+    rng = np.random.default_rng(11)
+    d = LrbmsDecoder(H, error_rate=p, check_groups=9, lrbms_order=8, max_iter=20,
+                     ms_scaling_factor=0.8, osd_method="osd_cs", osd_order=7)
+    assert d.osd_method == "OSD_CS" and d.osd_order == 7
+    used = 0
+    for _ in range(200):
+        e = (rng.random(n) < p).astype(np.uint8)
+        s = H @ e % 2
+        c = d.decode(s)
+        assert not (H @ c % 2 != s).any()
+        used += d.osd_used
+        assert d.osd_used == (not d.converge)
+        assert np.array_equal(d.decoding, c)
+    assert used > 0
+
+
+def test_single_row_groups_with_osd_equal_bposd():
+    """ell=1 + OSD must reproduce ldpc's BpOsdDecoder bit-for-bit (same LLRs fed to the same OSD)."""
+    from ldpc import BpOsdDecoder
+    H = bb_code_144()
+    n = H.shape[1]
+    p = 0.05
+    rng = np.random.default_rng(12)
+    for method, order in [("osd_0", 0), ("osd_cs", 7)]:
+        a = BpOsdDecoder(H, error_rate=p, bp_method="ms", schedule="parallel", ms_scaling_factor=0.8,
+                         max_iter=30, osd_method=method, osd_order=order)
+        b = LrbmsDecoder(H, error_rate=p, ms_scaling_factor=0.8, max_iter=30,
+                         osd_method=method, osd_order=order)
+        for _ in range(150):
+            e = (rng.random(n) < p).astype(np.uint8)
+            s = H @ e % 2
+            assert np.array_equal(a.decode(s), b.decode(s))
+
+
+def test_osd_invalid_args():
+    H = random_ldpc(10, 20, 3, 0)
+    with pytest.raises(ValueError):
+        LrbmsDecoder(H, error_rate=0.1, osd_method="nope")
+    d = LrbmsDecoder(H, error_rate=0.1)
+    assert d.osd_method == "OSD_OFF" and not d.osd_used

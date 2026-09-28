@@ -48,6 +48,12 @@ cdef class LrbmsDecoder:
         Magnitude clip for messages (also used for locally forced bits).
     max_trellis_ell : int
         Largest group size accepted by the trellis method.
+    osd_method : str
+        OSD post-processing applied when LRB-MS does not converge:
+        ``'off'`` (default), ``'osd_0'``, ``'osd_cs'`` (combination sweep) or ``'osd_e'``.
+        Uses the LRB-MS posterior LLRs as soft input, like ``BpOsdDecoder``.
+    osd_order : int
+        OSD order (ignored for ``'osd_0'``).
     """
 
     def __cinit__(self, pcm,
@@ -61,9 +67,13 @@ cdef class LrbmsDecoder:
                   schedule="parallel",
                   llr_clip=50.0,
                   max_trellis_ell=22,
+                  osd_method="off",
+                  osd_order=0,
                   **kwargs):
 
         self.MEMORY_ALLOCATED = False
+        self.OSD_ALLOCATED = False
+        self._osd_used = False
 
         for key in kwargs.keys():
             if key not in ["channel_probs"]:
@@ -107,7 +117,37 @@ cdef class LrbmsDecoder:
         self.gc_method = gc_method
         self.schedule = schedule
 
+        # optional OSD post-processing on LRB-MS failures (reuses ldpc's OSD implementation)
+        cdef OsdMethod om
+        cdef int oo = int(osd_order)
+        method = str(osd_method).lower()
+        if method in ("off", "osd_off", "none", "-1"):
+            om = OSD_OFF
+        elif method in ("osd_0", "osd0", "0"):
+            om = OSD_0
+            oo = 0
+        elif method in ("osd_cs", "cs", "combination_sweep", "1"):
+            om = COMBINATION_SWEEP
+        elif method in ("osd_e", "e", "exhaustive"):
+            om = EXHAUSTIVE
+        else:
+            raise ValueError(f"osd_method '{osd_method}' invalid. Choose 'off', 'osd_0', 'osd_cs' or 'osd_e'.")
+        if oo < 0:
+            raise ValueError("osd_order must be a non-negative integer.")
+        self._llr.resize(self.n)
+        if om != OSD_OFF:
+            self._osd_channel = cprobs
+            self.pcm_bp = new BpSparse(self.m, self.n, int(H.nnz))
+            for i in range(self.m):
+                for j in H.indices[H.indptr[i]:H.indptr[i + 1]]:
+                    self.pcm_bp.insert_entry(i, int(j))
+            self.osdD = new OsdDecoderCpp(self.pcm_bp[0], om, oo, self._osd_channel)
+            self.OSD_ALLOCATED = True
+
     def __dealloc__(self):
+        if self.OSD_ALLOCATED:
+            del self.osdD
+            del self.pcm_bp
         if self.MEMORY_ALLOCATED:
             del self.lrbmsd
 
@@ -170,9 +210,18 @@ cdef class LrbmsDecoder:
             for i in range(self.n):
                 self.lrbmsd.decoding[i] = 0
             return out
+        self._osd_used = False
         self.lrbmsd.decode(self._syndrome)
+        if self.lrbmsd.converge or not self.OSD_ALLOCATED:
+            for i in range(self.n):
+                out[i] = self.lrbmsd.decoding[i]
+            return out
         for i in range(self.n):
-            out[i] = self.lrbmsd.decoding[i]
+            self._llr[i] = self.lrbmsd.log_prob_ratios[i]
+        self.osdD.decode(self._syndrome, self._llr)
+        self._osd_used = True
+        for i in range(self.n):
+            out[i] = self.osdD.osdw_decoding[i]
         return out
 
     # --------------------------------------------------------------- properties
@@ -209,6 +258,10 @@ cdef class LrbmsDecoder:
         probs = self._resolve_channel(None, value)
         cdef vector[double] cprobs = probs
         self.lrbmsd.set_channel_probabilities(cprobs)
+        cdef int i
+        if self.OSD_ALLOCATED:
+            for i in range(self.n):
+                self._osd_channel[i] = cprobs[i]  # OSD holds a reference to this vector
 
     def update_channel_probs(self, value) -> None:
         self.error_channel = value
@@ -279,9 +332,10 @@ cdef class LrbmsDecoder:
 
     @property
     def decoding(self) -> np.ndarray:
+        """Final output of the last decode (OSD result if the fallback was used)."""
         out = np.zeros(self.n, dtype=np.uint8)
         for i in range(self.n):
-            out[i] = self.lrbmsd.decoding[i]
+            out[i] = self.osdD.osdw_decoding[i] if self._osd_used else self.lrbmsd.decoding[i]
         return out
 
     @property
@@ -290,6 +344,35 @@ cdef class LrbmsDecoder:
         out = np.zeros(self.n)
         for i in range(self.n):
             out[i] = self.lrbmsd.log_prob_ratios[i]
+        return out
+
+    @property
+    def osd_method(self) -> str:
+        if not self.OSD_ALLOCATED:
+            return "OSD_OFF"
+        if self.osdD.osd_method == OSD_0:
+            return "OSD_0"
+        if self.osdD.osd_method == COMBINATION_SWEEP:
+            return "OSD_CS"
+        if self.osdD.osd_method == EXHAUSTIVE:
+            return "OSD_E"
+        return "OSD_OFF"
+
+    @property
+    def osd_order(self) -> int:
+        return self.osdD.osd_order if self.OSD_ALLOCATED else 0
+
+    @property
+    def osd_used(self) -> bool:
+        """True if the last decode fell back to OSD (LRB-MS did not converge)."""
+        return self._osd_used
+
+    @property
+    def lrbms_decoding(self) -> np.ndarray:
+        """Hard decision of LRB-MS alone for the last decode (before any OSD fallback)."""
+        out = np.zeros(self.n, dtype=np.uint8)
+        for i in range(self.n):
+            out[i] = self.lrbmsd.decoding[i]
         return out
 
     @property

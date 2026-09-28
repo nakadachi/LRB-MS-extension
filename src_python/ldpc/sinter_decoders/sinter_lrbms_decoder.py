@@ -27,6 +27,10 @@ class SinterLrbmsDecoder(sinter.Decoder):
         ``'lrbms'`` or ``'trellis'``.
     schedule : str
         ``'parallel'`` or ``'serial'``.
+    osd_method : str
+        OSD fallback when LRB-MS does not converge: ``'off'``, ``'osd_0'``, ``'osd_cs'``, ``'osd_e'``.
+    osd_order : int
+        OSD order.
 
     Example
     -------
@@ -41,6 +45,8 @@ class SinterLrbmsDecoder(sinter.Decoder):
         lrbms_order=0,
         gc_method="lrbms",
         schedule="parallel",
+        osd_method="off",
+        osd_order=0,
     ):
         self.check_groups = check_groups
         self.max_iter = max_iter
@@ -48,6 +54,8 @@ class SinterLrbmsDecoder(sinter.Decoder):
         self.lrbms_order = lrbms_order
         self.gc_method = gc_method
         self.schedule = schedule
+        self.osd_method = osd_method
+        self.osd_order = osd_order
 
     def decode_via_files(
         self,
@@ -73,6 +81,8 @@ class SinterLrbmsDecoder(sinter.Decoder):
             lrbms_order=self.lrbms_order,
             gc_method=self.gc_method,
             schedule=self.schedule,
+            osd_method=self.osd_method,
+            osd_order=self.osd_order,
         )
 
         shots = stim.read_shot_data_file(
