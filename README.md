@@ -86,6 +86,28 @@ decoder.converge, decoder.iterations, decoder.log_prob_ratios
 
 A sinter wrapper is available as `ldpc.sinter_decoders.SinterLrbmsDecoder`.
 
+### Benchmark: quantum Tanner codes
+
+We benchmarked `LrbmsDecoder` against `ldpc`'s BP and BP+OSD on four Leverrier–Zémor
+quantum Tanner codes, from [[576,32]] to [[2160,24]]. The noise is code-capacity bit flips.
+Each generalized check is one Tanner-graph vertex's local tensor code (9 rows), which is
+exactly what `overlap_check_groups(H, 9)` recovers.
+
+![Quantum Tanner code benchmark](examples/qtanner/qtanner_benchmark.png)
+
+| code, p | BP (min-sum) | BP+OSD-CS7 | LRB-MS-8 |
+|---|---|---|---|
+| [[576,32,≤16]] (C16), 0.05 | 4.3e-2 | 3.7e-2 | 1.4e-3 |
+| [[864,22,≤18]] (SL(2,3)), 0.05 | 1.2e-2 | 8.4e-3 | 5e-5 |
+| [[1080,24,≤18]] (D30), 0.06 | 5.7e-2 | 4.1e-2 | 1.4e-3 |
+| [[2160,24]] (A5), 0.06 | 2.6e-2 | 9.7e-3 | 5e-5 |
+
+On these codes, LRB-MS lowers the logical error rate by 20–200× compared with BP and
+BP+OSD-CS7, and the rise in failures moves from p ≈ 0.03–0.04 to p ≈ 0.06–0.07. Decode time is
+comparable to plain min-sum BP and lower than BP+OSD. OSD adds little in either case. The exact
+per-group trellis matches LRB-MS-8 but runs 5–30× slower. The setup, full results, and scripts
+to reproduce them are in [`examples/qtanner`](examples/qtanner/README.md).
+
 ## BP+LSD Quickstart
 
 Usage of the new BP+LSD decoder from https://arxiv.org/abs/2406.18655. Similar to BP+OSD, the LSD decoder can be applied to any parity check matrix. We recommend you start with `lsd_order=0`. The speed/accuracy trade-off for higher order values can be explored from there. Example below:
