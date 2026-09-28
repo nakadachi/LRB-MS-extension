@@ -24,7 +24,6 @@ Checks are built in `qtanner_codes.py`, and `H_X H_Z^T = 0` is asserted.
 
 The distance bounds come from 2000 random information-set trials (`distance.py`).
 These are upper bounds, and the search gave no usable bound for A5.
-No LRB-MS failure in the whole sweep had weight below these bounds.
 
 **Noise and decoding.** Each qubit gets an X error independently with probability `p`.
 The decoders see `s = H_Z e`. A shot fails if the residual `e + ê` has a nonzero
