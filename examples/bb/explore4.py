@@ -10,7 +10,6 @@ specs=[("BP+OSD-CS7",dict(kind="bposd")),
  ("x+y cosets t=4 +OSD",dict(kind="lrbms",groups=("union",X,Y),t=4,**osd)),
  ("x+y msf0.6 +OSD",dict(kind="lrbms",groups=("union",X,Y),msf=0.6,**osd)),
  ("x+y msf0.5 +OSD",dict(kind="lrbms",groups=("union",X,Y),msf=0.5,**osd)),
- ("x+y+greedy8 +OSD",dict(kind="lrbms",groups=("union",X,Y,8),msf=0.5,**osd)),
 ]
 with mp.Pool(4) as pool:
     for p in ps:
