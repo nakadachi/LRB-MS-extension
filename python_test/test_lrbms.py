@@ -240,3 +240,75 @@ def test_osd_invalid_args():
         LrbmsDecoder(H, error_rate=0.1, osd_method="nope")
     d = LrbmsDecoder(H, error_rate=0.1)
     assert d.osd_method == "OSD_OFF" and not d.osd_used
+
+
+# ------------------------------------------------------------- ensemble
+
+def test_permuted_groupings_are_distinct_partitions():
+    from ldpc.lrbms_decoder import permuted_overlap_groupings
+    H = bb_code_144()
+    gs = permuted_overlap_groupings(H, 8, 4, seed=3)
+    assert gs[0] == overlap_check_groups(H, 8)
+    for g in gs:
+        assert sorted(r for grp in g for r in grp) == list(range(H.shape[0]))
+    assert len({tuple(map(tuple, sorted(g))) for g in gs}) == 4
+
+
+def test_ensemble_output_is_cheapest_valid_member():
+    from ldpc.lrbms_decoder import LrbmsEnsembleDecoder
+    H = bb_code_144()
+    n = H.shape[1]
+    p = 0.06
+    ens = LrbmsEnsembleDecoder(H, error_rate=p, ell=8, num_groupings=4, max_iter=50,
+                               ms_scaling_factor=0.75, schedule="serial",
+                               osd_method="osd_cs", osd_order=4)
+    rng = np.random.default_rng(1)
+    for _ in range(40):
+        e = (rng.random(n) < p).astype(np.uint8)
+        s = H @ e % 2
+        d = ens.decode(s)
+        assert ens.converge  # OSD fallback makes every member syndrome-valid
+        assert np.array_equal(H @ d % 2, s)
+        weights = [m.decode(s).sum() for m in ens.members]
+        assert d.sum() == min(weights)
+
+
+def test_ensemble_single_grouping_equals_lrbms():
+    from ldpc.lrbms_decoder import LrbmsEnsembleDecoder
+    H = bb_code_144()
+    n = H.shape[1]
+    kw = dict(error_rate=0.05, max_iter=50, ms_scaling_factor=0.75, schedule="serial")
+    ens = LrbmsEnsembleDecoder(H, groupings=[6], **kw)
+    ref = LrbmsDecoder(H, check_groups=6, **kw)
+    rng = np.random.default_rng(2)
+    for _ in range(30):
+        e = (rng.random(n) < 0.05).astype(np.uint8)
+        s = H @ e % 2
+        assert np.array_equal(ens.decode(s), ref.decode(s))
+
+
+def test_ensemble_invalid_args():
+    from ldpc.lrbms_decoder import LrbmsEnsembleDecoder
+    H = bb_code_144()
+    with pytest.raises(ValueError):
+        LrbmsEnsembleDecoder(H, error_rate=0.05, stop="sometimes")
+    with pytest.raises(ValueError):
+        LrbmsEnsembleDecoder(H, error_rate=0.05, groupings=[])
+    with pytest.raises(ValueError):
+        LrbmsEnsembleDecoder(H)
+    with pytest.raises(ValueError):
+        LrbmsEnsembleDecoder(H, error_rate=0.05, osd_members="some")
+
+
+def test_ensemble_osd_on_last_member_only():
+    from ldpc.lrbms_decoder import LrbmsEnsembleDecoder
+    H = bb_code_144()
+    ens = LrbmsEnsembleDecoder(H, error_rate=0.05, num_groupings=3, stop="first", osd_members="last",
+                               osd_method="osd_cs", osd_order=4, max_iter=30)
+    assert [m.osd_method for m in ens.members] == ["OSD_OFF", "OSD_OFF", "OSD_CS"]
+    rng = np.random.default_rng(4)
+    for _ in range(30):
+        e = (rng.random(H.shape[1]) < 0.05).astype(np.uint8)
+        s = H @ e % 2
+        d = ens.decode(s)
+        assert ens.converge and np.array_equal(H @ d % 2, s)

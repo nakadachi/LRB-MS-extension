@@ -1,0 +1,43 @@
+[
+ {
+  "name": "BP (min-sum)",
+  "kind": "bp"
+ },
+ {
+  "name": "BP+OSD-CS7",
+  "kind": "bposd",
+  "osd_order": 7
+ },
+ {
+  "name": "BP+OSD-CS40",
+  "kind": "bposd",
+  "osd_order": 40
+ },
+ {
+  "name": "LRB-MS ell=8 +OSD-CS7",
+  "kind": "lrbms",
+  "groups": 8,
+  "osd_method": "osd_cs",
+  "osd_order": 7
+ },
+ {
+  "name": "Ensemble x8, first, OSD on last",
+  "kind": "ensemble",
+  "ell": 8,
+  "count": 8,
+  "stop": "first",
+  "osd_members": "last",
+  "osd_method": "osd_cs",
+  "osd_order": 7
+ },
+ {
+  "name": "Ensemble x8, all, OSD on all",
+  "kind": "ensemble",
+  "ell": 8,
+  "count": 8,
+  "stop": "all",
+  "osd_members": "all",
+  "osd_method": "osd_cs",
+  "osd_order": 7
+ }
+]

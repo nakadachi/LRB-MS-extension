@@ -29,7 +29,8 @@ def wilson(k, n, z=1.96):
 PLOT_EXCLUDE = {"LRB-MS-8 (greedy ell=9)"}
 
 
-def main(path="results.json", codes_path="codes.json", out="qtanner_benchmark.png"):
+def main(path="results.json", codes_path="codes.json", out="qtanner_benchmark.png",
+         title="Quantum Tanner codes", table="results_table.md"):
     res = json.load(open(path))
     codes = [c["label"] for c in json.load(open(codes_path))]
     decoders = list(dict.fromkeys(r["decoder"] for r in res))
@@ -74,7 +75,7 @@ def main(path="results.json", codes_path="codes.json", out="qtanner_benchmark.pn
         axes[0, 0].set_ylabel("logical error rate (per shot)")
         axes[1, 0].set_ylabel("decode time (ms / shot, 1 core)")
     fig.legend(loc="lower center", ncol=4, frameon=False, bbox_to_anchor=(0.5, -0.01))
-    fig.text(0.5, 0.995, "Quantum Tanner codes, code-capacity X noise, decoded with H_Z  "
+    fig.text(0.5, 0.995, f"{title}, code-capacity X noise, decoded with H_Z  "
              "(open triangles: 0 failures, 95% upper bound)", ha="center", va="top", color=INK2)
     fig.tight_layout(rect=(0, 0.07, 1, 0.97))
     fig.savefig(out, dpi=150, facecolor=SURFACE)
@@ -93,7 +94,7 @@ def main(path="results.json", codes_path="codes.json", out="qtanner_benchmark.pn
                              f"{r['fails'] / r['shots']:.1e} ({r['fails']}/{r['shots']}), "
                              f"{r['us_per_shot'] / 1000:.2f} ms")
             lines.append(f"| {d} | " + " | ".join(cells) + " |")
-    open("results_table.md", "w").write("\n".join(lines) + "\n")
+    open(table, "w").write("\n".join(lines) + "\n")
 
 
 if __name__ == "__main__":
