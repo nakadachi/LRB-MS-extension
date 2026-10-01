@@ -213,6 +213,11 @@ already failed every shot at p = 0.04. "—" means not run.
 
 ![Large quantum Tanner code benchmark](examples/qtanner/qtanner_large_benchmark.png)
 
+> **Timing caveat:** while this benchmark ran, a leftover background job occupied the same 4 cores,
+> so the absolute decode times in this section are likely about 2× too high. The extra load was
+> constant throughout, so the relative speeds of the decoders should be roughly preserved.
+> Logical error rates are unaffected.
+
 **[[3840,48]] (A5/[8,4,4])**
 
 | decoder | 0.01 | 0.02 | 0.03 | 0.04 | 0.05 | 0.06 | 0.07 | 0.08 |
@@ -389,6 +394,11 @@ the same six decoders, up to 10 000 shots per point.
 
 ![Large BB code benchmark](examples/bb/bb_large_benchmark.png)
 
+> **Timing caveat:** while this benchmark ran, a leftover background job occupied the same 4 cores,
+> so the absolute decode times in this section are likely about 2× too high. The extra load was
+> constant throughout, so the relative speeds of the decoders should be roughly preserved.
+> Logical error rates are unaffected.
+
 **[[360,12,≤24]]**
 
 | decoder | 0.04 | 0.05 | 0.06 | 0.07 | 0.08 | 0.09 | ms/shot @ p=0.06 |
@@ -446,6 +456,11 @@ uses min-sum scaling 0.75. The single LRB-MS decoder uses 0.9, which was equally
 A point stops at 100 failures or 4 000 shots, or 2 000 shots for the run-all ensemble.
 
 ![Circuit-level BB benchmark](examples/bb_circuit/bb_circuit_benchmark.png)
+
+> **Timing caveat:** while this benchmark ran, a leftover background job occupied the same 4 cores,
+> so the absolute decode times in this section are likely about 2× too high. The extra load was
+> constant throughout, so the relative speeds of the decoders should be roughly preserved.
+> Logical error rates are unaffected.
 
 Logical error rate per shot (12 rounds), with mean decode time per shot on one core:
 
