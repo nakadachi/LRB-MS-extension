@@ -57,8 +57,11 @@ _CODES = {}
 def load_code(entry):
     key = entry["label"]
     if key not in _CODES:
-        mul, _, _ = group_table(GROUPS[entry["group"]]())
-        _CODES[key] = build_qtanner(mul, entry["A"], entry["B"], H_A, H_B, name=key)
+        from search_large import GROUPS as LARGE_GROUPS, LOCAL
+        groups = {**GROUPS, **LARGE_GROUPS}
+        h_a, h_b, _ = LOCAL[entry.get("local", "633")]
+        mul, _, _ = group_table(groups[entry["group"]]())
+        _CODES[key] = build_qtanner(mul, entry["A"], entry["B"], h_a, h_b, name=key)
     return _CODES[key]
 
 
