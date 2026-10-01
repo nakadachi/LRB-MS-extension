@@ -125,9 +125,13 @@ def main():
                         continue
                     if p in spec.get("skip_p", {}).get(entry["label"], []):
                         continue
+                    only = spec.get("only_p", {}).get(entry["label"])
+                    if only is not None and p not in only:
+                        continue
                     # same seed for every decoder at a given (code, p): paired error samples
                     seed = zlib.crc32(f"{entry['label']}|{p}".encode())
-                    res = simulate(pool, entry, spec, p, args.max_shots, args.max_fails, args.chunk, seed)
+                    res = simulate(pool, entry, spec, p, spec.get("max_shots", args.max_shots),
+                                   spec.get("max_fails", args.max_fails), spec.get("chunk", args.chunk), seed)
                     res.update(code=entry["label"], decoder=spec["name"], p=p)
                     results.append(res)
                     print(f"{entry['label']:>22} p={p:<6} {spec['name']:>24}: "

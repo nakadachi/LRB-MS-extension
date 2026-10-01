@@ -1,0 +1,59 @@
+[
+ {
+  "name": "BP (min-sum)",
+  "kind": "bp",
+  "msf": 0.75,
+  "max_shots": 400,
+  "max_fails": 50,
+  "chunk": 25
+ },
+ {
+  "name": "BP+LSD-CS7",
+  "kind": "bplsd",
+  "msf": 0.75,
+  "lsd_order": 7,
+  "max_shots": 400,
+  "max_fails": 50,
+  "chunk": 25
+ },
+ {
+  "name": "BP+OSD-CS7",
+  "kind": "bposd",
+  "msf": 0.75,
+  "osd_method": "osd_cs",
+  "osd_order": 7,
+  "max_shots": 100,
+  "max_fails": 20,
+  "chunk": 5,
+  "only_p": {
+   "A5/[8,4,4] [[3840,48]]": [
+    0.01,
+    0.02
+   ],
+   "PSL(2,7)/[6,3,3] [[6048,40]]": [
+    0.03,
+    0.04,
+    0.05
+   ],
+   "PSL(2,7)/[8,4,4] [[10752,56]]": []
+  }
+ },
+ {
+  "name": "LRB-MS-0 (vertex GCs)",
+  "kind": "lrbms",
+  "groups": "vertex",
+  "msf": 0.75,
+  "t": 0,
+  "max_shots": 10000,
+  "chunk": 100
+ },
+ {
+  "name": "LRB-MS-8 (vertex GCs)",
+  "kind": "lrbms",
+  "groups": "vertex",
+  "msf": 0.75,
+  "t": 8,
+  "max_shots": 10000,
+  "chunk": 100
+ }
+]
