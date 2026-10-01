@@ -9,6 +9,18 @@ With one row per GC it reduces exactly to (normalised) min-sum BP.
 
 The C++ core lives in `src_cpp/lrbms.hpp` and the Python bindings in `ldpc.lrbms_decoder`.
 
+## Results at a glance
+
+| setting | best LRB-MS variant | compared with | result |
+|---|---|---|---|
+| Quantum Tanner codes, n = 576–2160 | LRB-MS-8, one GC per vertex | BP+OSD-CS7 | 20–200× fewer logical errors, similar or lower decode time |
+| Quantum Tanner codes, [8,4,4] local codes, n = 3840 and 10752 | LRB-MS-8, one GC per vertex | BP, BP+LSD-CS7, BP+OSD-CS7 | no failures in 10 000 shots up to p = 0.04, where the baselines fail most or all shots; 200–9000× faster |
+| BB codes [[360,12]], [[756,16]], code capacity | ensemble ×8 over groupings | BP+OSD-CS40 | 1.7–3.7× fewer logical errors, about 10× the decode time |
+| BB [[144,12,12]], circuit-level, 12 rounds | ensemble ×8 over groupings | BP+OSD-CS7/CS40 | 2.1–2.4× fewer logical errors at p = 0.0025–0.003, about 10× the decode time |
+
+LRB-MS gains the most when groups of checks form strong local codes, as in Tanner-type codes.
+On BB codes a single LRB-MS decoder is not better than BP+OSD, and the gain comes from the ensemble.
+
 ## Installation
 
 Python 3.10 or newer and a C++ compiler are required.
@@ -369,6 +381,48 @@ as half a failure, since no minimum-weight rule can break the tie.
   - more diverse groupings (for example, mixing `ell` values);
   - a native C++ ensemble that shares the OSD elimination between members;
   - running the lowest-cost selection over OSD-CS candidates from several members' soft outputs.
+
+### Larger BB codes: [[360,12,≤24]] and [[756,16,≤34]]
+
+These are the two largest codes in Bravyi et al. The setup is the same: code-capacity bit flips,
+the same six decoders, up to 10 000 shots per point.
+
+![Large BB code benchmark](examples/bb/bb_large_benchmark.png)
+
+**[[360,12,≤24]]**
+
+| decoder | 0.04 | 0.05 | 0.06 | 0.07 | 0.08 | 0.09 | ms/shot @ p=0.06 |
+|---|---|---|---|---|---|---|---|
+| BP (min-sum) | 3.5e-03 | 2.2e-02 | 7.4e-02 | 2.4e-01 | 4.5e-01 | 6.5e-01 | 0.7 |
+| BP+OSD-CS7 | 2.0e-04 | 3.5e-03 | 1.8e-02 | 6.8e-02 | 2.1e-01 | 3.9e-01 | 1.1 |
+| BP+OSD-CS40 | 1.0e-04 | 3.2e-03 | 1.4e-02 | 6.0e-02 | 1.9e-01 | 3.7e-01 | 1.8 |
+| LRB-MS ell=8 + OSD-CS7 | 3.0e-04 | 4.9e-03 | 2.5e-02 | 7.9e-02 | 2.5e-01 | 4.3e-01 | 1.9 |
+| **Ensemble ×8, first** | 0 (/10000) | 2.0e-03 | 1.3e-02 | 5.3e-02 | 1.9e-01 | 3.7e-01 | 4.2 |
+| **Ensemble ×8, all** | 0 (/10000) | 1.3e-03 | 7.5e-03 | 3.9e-02 | 1.5e-01 | 3.1e-01 | 15.1 |
+
+**[[756,16,≤34]]**
+
+| decoder | 0.04 | 0.05 | 0.06 | 0.07 | 0.08 | 0.09 | ms/shot @ p=0.06 |
+|---|---|---|---|---|---|---|---|
+| BP (min-sum) | 5.0e-04 | 4.2e-03 | 3.5e-02 | 1.8e-01 | 4.6e-01 | 7.1e-01 | 1.7 |
+| BP+OSD-CS7 | 0 (/10000) | 1.0e-04 | 3.7e-03 | 3.9e-02 | 1.9e-01 | 4.7e-01 | 2.0 |
+| BP+OSD-CS40 | 0 (/10000) | 1.0e-04 | 3.7e-03 | 3.8e-02 | 1.9e-01 | 4.7e-01 | 2.2 |
+| LRB-MS ell=8 + OSD-CS7 | 0 (/10000) | 3.0e-04 | 5.1e-03 | 5.3e-02 | 2.3e-01 | 4.9e-01 | 3.1 |
+| **Ensemble ×8, first** | 0 (/10000) | 0 (/10000) | 1.9e-03 | 3.4e-02 | 1.6e-01 | 4.2e-01 | 4.0 |
+| **Ensemble ×8, all** | 0 (/10000) | 0 (/10000) | 1.0e-03 | 1.7e-02 | 1.1e-01 | 3.2e-01 | 23.6 |
+
+
+- **The ensemble's advantage grows with code size.** Comparing "ensemble ×8, all" with the stronger
+  baseline, BP+OSD-CS40:
+  - [[360,12,≤24]]: 2.5× fewer failures at p = 0.05 and 1.8× at p = 0.06;
+  - [[756,16,≤34]]: 3.7× at p = 0.06, 2.3× at p = 0.07 and 1.7× at p = 0.08.
+
+  Its decode time is about 8–11× that of BP+OSD-CS40 at p = 0.06.
+- **"Ensemble ×8, first" is the cheap option.** It gives 1.6–1.9× fewer failures than BP+OSD-CS40
+  at p = 0.05 on [[360]] and p = 0.06 on [[756]], for about 2× the time. At higher noise it roughly
+  ties BP+OSD-CS40.
+- **A single LRB-MS decoder with OSD fallback stays slightly behind BP+OSD** on these codes too.
+  Raising the OSD order from 7 to 40 barely changes BP+OSD.
 
 The BB construction, the exploration scripts, the headroom estimator (`mw_bound.py`) and the raw
 data are in [`examples/bb`](examples/bb/README.md).

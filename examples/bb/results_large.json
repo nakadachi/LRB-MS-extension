@@ -1,0 +1,650 @@
+[
+ {
+  "fails": 35,
+  "unconverged": 35,
+  "shots": 10000,
+  "us_per_shot": 387.90205720069935,
+  "code": "[[360,12,<=24]]",
+  "decoder": "BP (min-sum)",
+  "p": 0.04
+ },
+ {
+  "fails": 2,
+  "unconverged": 35,
+  "shots": 10000,
+  "us_per_shot": 358.40522529542795,
+  "code": "[[360,12,<=24]]",
+  "decoder": "BP+OSD-CS7",
+  "p": 0.04
+ },
+ {
+  "fails": 1,
+  "unconverged": 35,
+  "shots": 10000,
+  "us_per_shot": 361.95501099937246,
+  "code": "[[360,12,<=24]]",
+  "decoder": "BP+OSD-CS40",
+  "p": 0.04
+ },
+ {
+  "fails": 3,
+  "unconverged": 10,
+  "shots": 10000,
+  "us_per_shot": 604.6594970022852,
+  "code": "[[360,12,<=24]]",
+  "decoder": "LRB-MS ell=8 +OSD-CS7",
+  "p": 0.04
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 838.4205154987285,
+  "code": "[[360,12,<=24]]",
+  "decoder": "Ensemble x8, first, OSD on last",
+  "p": 0.04
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 5035.83583249856,
+  "code": "[[360,12,<=24]]",
+  "decoder": "Ensemble x8, all, OSD on all",
+  "p": 0.04
+ },
+ {
+  "fails": 109,
+  "unconverged": 109,
+  "shots": 5000,
+  "us_per_shot": 480.3969193948433,
+  "code": "[[360,12,<=24]]",
+  "decoder": "BP (min-sum)",
+  "p": 0.05
+ },
+ {
+  "fails": 35,
+  "unconverged": 223,
+  "shots": 10000,
+  "us_per_shot": 549.0013504990202,
+  "code": "[[360,12,<=24]]",
+  "decoder": "BP+OSD-CS7",
+  "p": 0.05
+ },
+ {
+  "fails": 32,
+  "unconverged": 223,
+  "shots": 10000,
+  "us_per_shot": 632.664371701685,
+  "code": "[[360,12,<=24]]",
+  "decoder": "BP+OSD-CS40",
+  "p": 0.05
+ },
+ {
+  "fails": 49,
+  "unconverged": 88,
+  "shots": 10000,
+  "us_per_shot": 920.0604769976053,
+  "code": "[[360,12,<=24]]",
+  "decoder": "LRB-MS ell=8 +OSD-CS7",
+  "p": 0.05
+ },
+ {
+  "fails": 20,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 1390.9059188001265,
+  "code": "[[360,12,<=24]]",
+  "decoder": "Ensemble x8, first, OSD on last",
+  "p": 0.05
+ },
+ {
+  "fails": 13,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 7796.905532400707,
+  "code": "[[360,12,<=24]]",
+  "decoder": "Ensemble x8, all, OSD on all",
+  "p": 0.05
+ },
+ {
+  "fails": 148,
+  "unconverged": 148,
+  "shots": 2000,
+  "us_per_shot": 742.4407834987505,
+  "code": "[[360,12,<=24]]",
+  "decoder": "BP (min-sum)",
+  "p": 0.06
+ },
+ {
+  "fails": 109,
+  "unconverged": 485,
+  "shots": 6000,
+  "us_per_shot": 1125.0864264984557,
+  "code": "[[360,12,<=24]]",
+  "decoder": "BP+OSD-CS7",
+  "p": 0.06
+ },
+ {
+  "fails": 109,
+  "unconverged": 665,
+  "shots": 8000,
+  "us_per_shot": 1753.9289191208807,
+  "code": "[[360,12,<=24]]",
+  "decoder": "BP+OSD-CS40",
+  "p": 0.06
+ },
+ {
+  "fails": 125,
+  "unconverged": 213,
+  "shots": 5000,
+  "us_per_shot": 1866.0796609983663,
+  "code": "[[360,12,<=24]]",
+  "decoder": "LRB-MS ell=8 +OSD-CS7",
+  "p": 0.06
+ },
+ {
+  "fails": 105,
+  "unconverged": 0,
+  "shots": 8000,
+  "us_per_shot": 4216.600926625688,
+  "code": "[[360,12,<=24]]",
+  "decoder": "Ensemble x8, first, OSD on last",
+  "p": 0.06
+ },
+ {
+  "fails": 75,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 15100.173354399887,
+  "code": "[[360,12,<=24]]",
+  "decoder": "Ensemble x8, all, OSD on all",
+  "p": 0.06
+ },
+ {
+  "fails": 245,
+  "unconverged": 245,
+  "shots": 1000,
+  "us_per_shot": 1822.9551480035298,
+  "code": "[[360,12,<=24]]",
+  "decoder": "BP (min-sum)",
+  "p": 0.07
+ },
+ {
+  "fails": 136,
+  "unconverged": 490,
+  "shots": 2000,
+  "us_per_shot": 2682.8072889948085,
+  "code": "[[360,12,<=24]]",
+  "decoder": "BP+OSD-CS7",
+  "p": 0.07
+ },
+ {
+  "fails": 121,
+  "unconverged": 490,
+  "shots": 2000,
+  "us_per_shot": 4564.280759001122,
+  "code": "[[360,12,<=24]]",
+  "decoder": "BP+OSD-CS40",
+  "p": 0.07
+ },
+ {
+  "fails": 158,
+  "unconverged": 270,
+  "shots": 2000,
+  "us_per_shot": 4373.438239501411,
+  "code": "[[360,12,<=24]]",
+  "decoder": "LRB-MS ell=8 +OSD-CS7",
+  "p": 0.07
+ },
+ {
+  "fails": 106,
+  "unconverged": 0,
+  "shots": 2000,
+  "us_per_shot": 13364.634083995043,
+  "code": "[[360,12,<=24]]",
+  "decoder": "Ensemble x8, first, OSD on last",
+  "p": 0.07
+ },
+ {
+  "fails": 118,
+  "unconverged": 0,
+  "shots": 3000,
+  "us_per_shot": 34079.99577199614,
+  "code": "[[360,12,<=24]]",
+  "decoder": "Ensemble x8, all, OSD on all",
+  "p": 0.07
+ },
+ {
+  "fails": 446,
+  "unconverged": 445,
+  "shots": 1000,
+  "us_per_shot": 2241.1736929934705,
+  "code": "[[360,12,<=24]]",
+  "decoder": "BP (min-sum)",
+  "p": 0.08
+ },
+ {
+  "fails": 207,
+  "unconverged": 445,
+  "shots": 1000,
+  "us_per_shot": 4060.3282709926134,
+  "code": "[[360,12,<=24]]",
+  "decoder": "BP+OSD-CS7",
+  "p": 0.08
+ },
+ {
+  "fails": 192,
+  "unconverged": 445,
+  "shots": 1000,
+  "us_per_shot": 6651.256323995767,
+  "code": "[[360,12,<=24]]",
+  "decoder": "BP+OSD-CS40",
+  "p": 0.08
+ },
+ {
+  "fails": 249,
+  "unconverged": 318,
+  "shots": 1000,
+  "us_per_shot": 8421.124486994815,
+  "code": "[[360,12,<=24]]",
+  "decoder": "LRB-MS ell=8 +OSD-CS7",
+  "p": 0.08
+ },
+ {
+  "fails": 187,
+  "unconverged": 0,
+  "shots": 1000,
+  "us_per_shot": 33520.76414000476,
+  "code": "[[360,12,<=24]]",
+  "decoder": "Ensemble x8, first, OSD on last",
+  "p": 0.08
+ },
+ {
+  "fails": 153,
+  "unconverged": 0,
+  "shots": 1000,
+  "us_per_shot": 65390.65875599772,
+  "code": "[[360,12,<=24]]",
+  "decoder": "Ensemble x8, all, OSD on all",
+  "p": 0.08
+ },
+ {
+  "fails": 653,
+  "unconverged": 653,
+  "shots": 1000,
+  "us_per_shot": 3139.5309580038884,
+  "code": "[[360,12,<=24]]",
+  "decoder": "BP (min-sum)",
+  "p": 0.09
+ },
+ {
+  "fails": 391,
+  "unconverged": 653,
+  "shots": 1000,
+  "us_per_shot": 6504.765138990479,
+  "code": "[[360,12,<=24]]",
+  "decoder": "BP+OSD-CS7",
+  "p": 0.09
+ },
+ {
+  "fails": 366,
+  "unconverged": 653,
+  "shots": 1000,
+  "us_per_shot": 11975.268967995362,
+  "code": "[[360,12,<=24]]",
+  "decoder": "BP+OSD-CS40",
+  "p": 0.09
+ },
+ {
+  "fails": 434,
+  "unconverged": 538,
+  "shots": 1000,
+  "us_per_shot": 12670.022962003713,
+  "code": "[[360,12,<=24]]",
+  "decoder": "LRB-MS ell=8 +OSD-CS7",
+  "p": 0.09
+ },
+ {
+  "fails": 369,
+  "unconverged": 0,
+  "shots": 1000,
+  "us_per_shot": 61795.63436998433,
+  "code": "[[360,12,<=24]]",
+  "decoder": "Ensemble x8, first, OSD on last",
+  "p": 0.09
+ },
+ {
+  "fails": 312,
+  "unconverged": 0,
+  "shots": 1000,
+  "us_per_shot": 100715.80791199813,
+  "code": "[[360,12,<=24]]",
+  "decoder": "Ensemble x8, all, OSD on all",
+  "p": 0.09
+ },
+ {
+  "fails": 5,
+  "unconverged": 5,
+  "shots": 10000,
+  "us_per_shot": 542.455460401834,
+  "code": "[[756,16,<=34]]",
+  "decoder": "BP (min-sum)",
+  "p": 0.04
+ },
+ {
+  "fails": 0,
+  "unconverged": 5,
+  "shots": 10000,
+  "us_per_shot": 698.3954315990559,
+  "code": "[[756,16,<=34]]",
+  "decoder": "BP+OSD-CS7",
+  "p": 0.04
+ },
+ {
+  "fails": 0,
+  "unconverged": 5,
+  "shots": 10000,
+  "us_per_shot": 644.4916020976962,
+  "code": "[[756,16,<=34]]",
+  "decoder": "BP+OSD-CS40",
+  "p": 0.04
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 1392.593479801144,
+  "code": "[[756,16,<=34]]",
+  "decoder": "LRB-MS ell=8 +OSD-CS7",
+  "p": 0.04
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 1573.0712331991526,
+  "code": "[[756,16,<=34]]",
+  "decoder": "Ensemble x8, first, OSD on last",
+  "p": 0.04
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 11035.390792298858,
+  "code": "[[756,16,<=34]]",
+  "decoder": "Ensemble x8, all, OSD on all",
+  "p": 0.04
+ },
+ {
+  "fails": 42,
+  "unconverged": 42,
+  "shots": 10000,
+  "us_per_shot": 902.1134694994543,
+  "code": "[[756,16,<=34]]",
+  "decoder": "BP (min-sum)",
+  "p": 0.05
+ },
+ {
+  "fails": 1,
+  "unconverged": 42,
+  "shots": 10000,
+  "us_per_shot": 1011.5057867005818,
+  "code": "[[756,16,<=34]]",
+  "decoder": "BP+OSD-CS7",
+  "p": 0.05
+ },
+ {
+  "fails": 1,
+  "unconverged": 42,
+  "shots": 10000,
+  "us_per_shot": 963.9308830017399,
+  "code": "[[756,16,<=34]]",
+  "decoder": "BP+OSD-CS40",
+  "p": 0.05
+ },
+ {
+  "fails": 3,
+  "unconverged": 8,
+  "shots": 10000,
+  "us_per_shot": 1871.9874305978012,
+  "code": "[[756,16,<=34]]",
+  "decoder": "LRB-MS ell=8 +OSD-CS7",
+  "p": 0.05
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 1863.0476304977492,
+  "code": "[[756,16,<=34]]",
+  "decoder": "Ensemble x8, first, OSD on last",
+  "p": 0.05
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 13820.833003600272,
+  "code": "[[756,16,<=34]]",
+  "decoder": "Ensemble x8, all, OSD on all",
+  "p": 0.05
+ },
+ {
+  "fails": 105,
+  "unconverged": 105,
+  "shots": 3000,
+  "us_per_shot": 1698.5743370023556,
+  "code": "[[756,16,<=34]]",
+  "decoder": "BP (min-sum)",
+  "p": 0.06
+ },
+ {
+  "fails": 37,
+  "unconverged": 306,
+  "shots": 10000,
+  "us_per_shot": 1965.3527805996418,
+  "code": "[[756,16,<=34]]",
+  "decoder": "BP+OSD-CS7",
+  "p": 0.06
+ },
+ {
+  "fails": 37,
+  "unconverged": 306,
+  "shots": 10000,
+  "us_per_shot": 2222.8442097984953,
+  "code": "[[756,16,<=34]]",
+  "decoder": "BP+OSD-CS40",
+  "p": 0.06
+ },
+ {
+  "fails": 51,
+  "unconverged": 135,
+  "shots": 10000,
+  "us_per_shot": 3126.4982362998126,
+  "code": "[[756,16,<=34]]",
+  "decoder": "LRB-MS ell=8 +OSD-CS7",
+  "p": 0.06
+ },
+ {
+  "fails": 19,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 4049.6807559982703,
+  "code": "[[756,16,<=34]]",
+  "decoder": "Ensemble x8, first, OSD on last",
+  "p": 0.06
+ },
+ {
+  "fails": 10,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 23609.18281359991,
+  "code": "[[756,16,<=34]]",
+  "decoder": "Ensemble x8, all, OSD on all",
+  "p": 0.06
+ },
+ {
+  "fails": 184,
+  "unconverged": 184,
+  "shots": 1000,
+  "us_per_shot": 3795.1168790023075,
+  "code": "[[756,16,<=34]]",
+  "decoder": "BP (min-sum)",
+  "p": 0.07
+ },
+ {
+  "fails": 117,
+  "unconverged": 507,
+  "shots": 3000,
+  "us_per_shot": 6414.429468667852,
+  "code": "[[756,16,<=34]]",
+  "decoder": "BP+OSD-CS7",
+  "p": 0.07
+ },
+ {
+  "fails": 115,
+  "unconverged": 507,
+  "shots": 3000,
+  "us_per_shot": 9317.469034004413,
+  "code": "[[756,16,<=34]]",
+  "decoder": "BP+OSD-CS40",
+  "p": 0.07
+ },
+ {
+  "fails": 107,
+  "unconverged": 192,
+  "shots": 2000,
+  "us_per_shot": 9027.97068550717,
+  "code": "[[756,16,<=34]]",
+  "decoder": "LRB-MS ell=8 +OSD-CS7",
+  "p": 0.07
+ },
+ {
+  "fails": 101,
+  "unconverged": 0,
+  "shots": 3000,
+  "us_per_shot": 21337.499951664842,
+  "code": "[[756,16,<=34]]",
+  "decoder": "Ensemble x8, first, OSD on last",
+  "p": 0.07
+ },
+ {
+  "fails": 102,
+  "unconverged": 0,
+  "shots": 6000,
+  "us_per_shot": 63806.68807366722,
+  "code": "[[756,16,<=34]]",
+  "decoder": "Ensemble x8, all, OSD on all",
+  "p": 0.07
+ },
+ {
+  "fails": 458,
+  "unconverged": 458,
+  "shots": 1000,
+  "us_per_shot": 5812.831864001054,
+  "code": "[[756,16,<=34]]",
+  "decoder": "BP (min-sum)",
+  "p": 0.08
+ },
+ {
+  "fails": 191,
+  "unconverged": 458,
+  "shots": 1000,
+  "us_per_shot": 15381.708914996125,
+  "code": "[[756,16,<=34]]",
+  "decoder": "BP+OSD-CS7",
+  "p": 0.08
+ },
+ {
+  "fails": 191,
+  "unconverged": 458,
+  "shots": 1000,
+  "us_per_shot": 24234.677194996035,
+  "code": "[[756,16,<=34]]",
+  "decoder": "BP+OSD-CS40",
+  "p": 0.08
+ },
+ {
+  "fails": 227,
+  "unconverged": 319,
+  "shots": 1000,
+  "us_per_shot": 20375.222547008885,
+  "code": "[[756,16,<=34]]",
+  "decoder": "LRB-MS ell=8 +OSD-CS7",
+  "p": 0.08
+ },
+ {
+  "fails": 164,
+  "unconverged": 0,
+  "shots": 1000,
+  "us_per_shot": 67503.63434199244,
+  "code": "[[756,16,<=34]]",
+  "decoder": "Ensemble x8, first, OSD on last",
+  "p": 0.08
+ },
+ {
+  "fails": 110,
+  "unconverged": 0,
+  "shots": 1000,
+  "us_per_shot": 156134.5226919948,
+  "code": "[[756,16,<=34]]",
+  "decoder": "Ensemble x8, all, OSD on all",
+  "p": 0.08
+ },
+ {
+  "fails": 715,
+  "unconverged": 715,
+  "shots": 1000,
+  "us_per_shot": 9352.153001993429,
+  "code": "[[756,16,<=34]]",
+  "decoder": "BP (min-sum)",
+  "p": 0.09
+ },
+ {
+  "fails": 473,
+  "unconverged": 715,
+  "shots": 1000,
+  "us_per_shot": 27275.70615601144,
+  "code": "[[756,16,<=34]]",
+  "decoder": "BP+OSD-CS7",
+  "p": 0.09
+ },
+ {
+  "fails": 473,
+  "unconverged": 715,
+  "shots": 1000,
+  "us_per_shot": 41437.32504000218,
+  "code": "[[756,16,<=34]]",
+  "decoder": "BP+OSD-CS40",
+  "p": 0.09
+ },
+ {
+  "fails": 495,
+  "unconverged": 614,
+  "shots": 1000,
+  "us_per_shot": 39889.727875997785,
+  "code": "[[756,16,<=34]]",
+  "decoder": "LRB-MS ell=8 +OSD-CS7",
+  "p": 0.09
+ },
+ {
+  "fails": 424,
+  "unconverged": 0,
+  "shots": 1000,
+  "us_per_shot": 158581.95190200058,
+  "code": "[[756,16,<=34]]",
+  "decoder": "Ensemble x8, first, OSD on last",
+  "p": 0.09
+ },
+ {
+  "fails": 320,
+  "unconverged": 0,
+  "shots": 1000,
+  "us_per_shot": 306368.2685459935,
+  "code": "[[756,16,<=34]]",
+  "decoder": "Ensemble x8, all, OSD on all",
+  "p": 0.09
+ }
+]
