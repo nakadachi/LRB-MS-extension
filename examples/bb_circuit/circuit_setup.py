@@ -87,4 +87,7 @@ class CircuitProblem:
             return self.groups_space(spec[1], spec[2] if len(spec) > 2 else 1)
         if kind == "greedy":
             return self.groups_greedy(spec[1])
+        if kind == "greedyperm":  # greedy grouping grown from a random row order
+            from ldpc.lrbms_decoder import permuted_overlap_groupings
+            return permuted_overlap_groupings(self.H, spec[1], spec[2] + 1, seed=spec[3] if len(spec) > 3 else 0)[-1]
         raise ValueError(spec)

@@ -1,0 +1,139 @@
+[
+ {
+  "name": "BP+OSD-CS7 msf0.625",
+  "kind": "bposd",
+  "msf": 0.625
+ },
+ {
+  "name": "BP+OSD-CS7 msf0.9",
+  "kind": "bposd",
+  "msf": 0.9
+ },
+ {
+  "name": "BP(PS)+OSD-CS7",
+  "kind": "bposd",
+  "bp_method": "product_sum"
+ },
+ {
+  "name": "LRB-MS greedy8 msf0.625 +OSD",
+  "kind": "lrbms",
+  "groups": [
+   "greedy",
+   8
+  ],
+  "msf": 0.625,
+  "osd_method": "osd_cs",
+  "osd_order": 7
+ },
+ {
+  "name": "LRB-MS greedy8 msf0.9 +OSD",
+  "kind": "lrbms",
+  "groups": [
+   "greedy",
+   8
+  ],
+  "msf": 0.9,
+  "osd_method": "osd_cs",
+  "osd_order": 7
+ },
+ {
+  "name": "Ens x8 first, OSD last",
+  "kind": "ensemble",
+  "groupings": [
+   [
+    "greedyperm",
+    8,
+    0
+   ],
+   [
+    "greedyperm",
+    8,
+    1
+   ],
+   [
+    "greedyperm",
+    8,
+    2
+   ],
+   [
+    "greedyperm",
+    8,
+    3
+   ],
+   [
+    "greedyperm",
+    8,
+    4
+   ],
+   [
+    "greedyperm",
+    8,
+    5
+   ],
+   [
+    "greedyperm",
+    8,
+    6
+   ],
+   [
+    "greedyperm",
+    8,
+    7
+   ]
+  ],
+  "stop": "first",
+  "osd_members": "last",
+  "osd_method": "osd_cs",
+  "osd_order": 7
+ },
+ {
+  "name": "Ens x8 all, OSD all",
+  "kind": "ensemble",
+  "groupings": [
+   [
+    "greedyperm",
+    8,
+    0
+   ],
+   [
+    "greedyperm",
+    8,
+    1
+   ],
+   [
+    "greedyperm",
+    8,
+    2
+   ],
+   [
+    "greedyperm",
+    8,
+    3
+   ],
+   [
+    "greedyperm",
+    8,
+    4
+   ],
+   [
+    "greedyperm",
+    8,
+    5
+   ],
+   [
+    "greedyperm",
+    8,
+    6
+   ],
+   [
+    "greedyperm",
+    8,
+    7
+   ]
+  ],
+  "stop": "all",
+  "osd_members": "all",
+  "osd_method": "osd_cs",
+  "osd_order": 7
+ }
+]
