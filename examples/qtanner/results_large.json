@@ -1,0 +1,803 @@
+[
+ {
+  "fails": 70,
+  "unconverged": 70,
+  "shots": 300,
+  "us_per_shot": 299130.19255666464,
+  "code": "A5/[8,4,4] [[3840,48]]",
+  "decoder": "BP (min-sum)",
+  "p": 0.01
+ },
+ {
+  "fails": 26,
+  "unconverged": 96,
+  "shots": 400,
+  "us_per_shot": 494935.62930749706,
+  "code": "A5/[8,4,4] [[3840,48]]",
+  "decoder": "BP+LSD-CS7",
+  "p": 0.01
+ },
+ {
+  "fails": 1,
+  "unconverged": 24,
+  "shots": 100,
+  "us_per_shot": 14360577.50097004,
+  "code": "A5/[8,4,4] [[3840,48]]",
+  "decoder": "BP+OSD-CS7",
+  "p": 0.01
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 4859.306229900267,
+  "code": "A5/[8,4,4] [[3840,48]]",
+  "decoder": "LRB-MS-0 (vertex GCs)",
+  "p": 0.01
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 5454.922565399102,
+  "code": "A5/[8,4,4] [[3840,48]]",
+  "decoder": "LRB-MS-8 (vertex GCs)",
+  "p": 0.01
+ },
+ {
+  "fails": 56,
+  "unconverged": 56,
+  "shots": 100,
+  "us_per_shot": 609725.5463500005,
+  "code": "A5/[8,4,4] [[3840,48]]",
+  "decoder": "BP (min-sum)",
+  "p": 0.02
+ },
+ {
+  "fails": 61,
+  "unconverged": 119,
+  "shots": 200,
+  "us_per_shot": 1308895.2703299993,
+  "code": "A5/[8,4,4] [[3840,48]]",
+  "decoder": "BP+LSD-CS7",
+  "p": 0.02
+ },
+ {
+  "fails": 19,
+  "unconverged": 64,
+  "shots": 100,
+  "us_per_shot": 60956336.61386994,
+  "code": "A5/[8,4,4] [[3840,48]]",
+  "decoder": "BP+OSD-CS7",
+  "p": 0.02
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 6266.961831499975,
+  "code": "A5/[8,4,4] [[3840,48]]",
+  "decoder": "LRB-MS-0 (vertex GCs)",
+  "p": 0.02
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 6871.430040200357,
+  "code": "A5/[8,4,4] [[3840,48]]",
+  "decoder": "LRB-MS-8 (vertex GCs)",
+  "p": 0.02
+ },
+ {
+  "fails": 81,
+  "unconverged": 81,
+  "shots": 100,
+  "us_per_shot": 958837.2725400041,
+  "code": "A5/[8,4,4] [[3840,48]]",
+  "decoder": "BP (min-sum)",
+  "p": 0.03
+ },
+ {
+  "fails": 64,
+  "unconverged": 81,
+  "shots": 100,
+  "us_per_shot": 2091296.554439996,
+  "code": "A5/[8,4,4] [[3840,48]]",
+  "decoder": "BP+LSD-CS7",
+  "p": 0.03
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 8436.312283500229,
+  "code": "A5/[8,4,4] [[3840,48]]",
+  "decoder": "LRB-MS-0 (vertex GCs)",
+  "p": 0.03
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 8761.414723000053,
+  "code": "A5/[8,4,4] [[3840,48]]",
+  "decoder": "LRB-MS-8 (vertex GCs)",
+  "p": 0.03
+ },
+ {
+  "fails": 100,
+  "unconverged": 100,
+  "shots": 100,
+  "us_per_shot": 1063653.8010700133,
+  "code": "A5/[8,4,4] [[3840,48]]",
+  "decoder": "BP (min-sum)",
+  "p": 0.04
+ },
+ {
+  "fails": 94,
+  "unconverged": 100,
+  "shots": 100,
+  "us_per_shot": 2715289.712480007,
+  "code": "A5/[8,4,4] [[3840,48]]",
+  "decoder": "BP+LSD-CS7",
+  "p": 0.04
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 11498.087361399303,
+  "code": "A5/[8,4,4] [[3840,48]]",
+  "decoder": "LRB-MS-0 (vertex GCs)",
+  "p": 0.04
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 11903.905838899846,
+  "code": "A5/[8,4,4] [[3840,48]]",
+  "decoder": "LRB-MS-8 (vertex GCs)",
+  "p": 0.04
+ },
+ {
+  "fails": 99,
+  "unconverged": 99,
+  "shots": 100,
+  "us_per_shot": 1041759.4923999968,
+  "code": "A5/[8,4,4] [[3840,48]]",
+  "decoder": "BP (min-sum)",
+  "p": 0.05
+ },
+ {
+  "fails": 95,
+  "unconverged": 99,
+  "shots": 100,
+  "us_per_shot": 2582167.3886299687,
+  "code": "A5/[8,4,4] [[3840,48]]",
+  "decoder": "BP+LSD-CS7",
+  "p": 0.05
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 17494.47013350018,
+  "code": "A5/[8,4,4] [[3840,48]]",
+  "decoder": "LRB-MS-0 (vertex GCs)",
+  "p": 0.05
+ },
+ {
+  "fails": 1,
+  "unconverged": 1,
+  "shots": 10000,
+  "us_per_shot": 16473.403402998156,
+  "code": "A5/[8,4,4] [[3840,48]]",
+  "decoder": "LRB-MS-8 (vertex GCs)",
+  "p": 0.05
+ },
+ {
+  "fails": 100,
+  "unconverged": 100,
+  "shots": 100,
+  "us_per_shot": 1081593.5049500149,
+  "code": "A5/[8,4,4] [[3840,48]]",
+  "decoder": "BP (min-sum)",
+  "p": 0.06
+ },
+ {
+  "fails": 100,
+  "unconverged": 100,
+  "shots": 100,
+  "us_per_shot": 3215194.2825699914,
+  "code": "A5/[8,4,4] [[3840,48]]",
+  "decoder": "BP+LSD-CS7",
+  "p": 0.06
+ },
+ {
+  "fails": 101,
+  "unconverged": 101,
+  "shots": 8400,
+  "us_per_shot": 38361.327337856026,
+  "code": "A5/[8,4,4] [[3840,48]]",
+  "decoder": "LRB-MS-0 (vertex GCs)",
+  "p": 0.06
+ },
+ {
+  "fails": 4,
+  "unconverged": 4,
+  "shots": 10000,
+  "us_per_shot": 27989.18449609937,
+  "code": "A5/[8,4,4] [[3840,48]]",
+  "decoder": "LRB-MS-8 (vertex GCs)",
+  "p": 0.06
+ },
+ {
+  "fails": 100,
+  "unconverged": 100,
+  "shots": 100,
+  "us_per_shot": 1119753.1660500136,
+  "code": "A5/[8,4,4] [[3840,48]]",
+  "decoder": "BP (min-sum)",
+  "p": 0.07
+ },
+ {
+  "fails": 100,
+  "unconverged": 100,
+  "shots": 100,
+  "us_per_shot": 4124417.637509978,
+  "code": "A5/[8,4,4] [[3840,48]]",
+  "decoder": "BP+LSD-CS7",
+  "p": 0.07
+ },
+ {
+  "fails": 182,
+  "unconverged": 182,
+  "shots": 400,
+  "us_per_shot": 144392.0752849999,
+  "code": "A5/[8,4,4] [[3840,48]]",
+  "decoder": "LRB-MS-0 (vertex GCs)",
+  "p": 0.07
+ },
+ {
+  "fails": 113,
+  "unconverged": 113,
+  "shots": 1200,
+  "us_per_shot": 87425.90055249669,
+  "code": "A5/[8,4,4] [[3840,48]]",
+  "decoder": "LRB-MS-8 (vertex GCs)",
+  "p": 0.07
+ },
+ {
+  "fails": 100,
+  "unconverged": 100,
+  "shots": 100,
+  "us_per_shot": 1080311.0799800016,
+  "code": "A5/[8,4,4] [[3840,48]]",
+  "decoder": "BP (min-sum)",
+  "p": 0.08
+ },
+ {
+  "fails": 100,
+  "unconverged": 100,
+  "shots": 100,
+  "us_per_shot": 4615605.481840012,
+  "code": "A5/[8,4,4] [[3840,48]]",
+  "decoder": "BP+LSD-CS7",
+  "p": 0.08
+ },
+ {
+  "fails": 394,
+  "unconverged": 394,
+  "shots": 400,
+  "us_per_shot": 230083.85504000218,
+  "code": "A5/[8,4,4] [[3840,48]]",
+  "decoder": "LRB-MS-0 (vertex GCs)",
+  "p": 0.08
+ },
+ {
+  "fails": 312,
+  "unconverged": 312,
+  "shots": 400,
+  "us_per_shot": 253144.04622499752,
+  "code": "A5/[8,4,4] [[3840,48]]",
+  "decoder": "LRB-MS-8 (vertex GCs)",
+  "p": 0.08
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 400,
+  "us_per_shot": 13307.990092489492,
+  "code": "PSL(2,7)/[6,3,3] [[6048,40]]",
+  "decoder": "BP (min-sum)",
+  "p": 0.03
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 400,
+  "us_per_shot": 13044.578009985344,
+  "code": "PSL(2,7)/[6,3,3] [[6048,40]]",
+  "decoder": "BP+LSD-CS7",
+  "p": 0.03
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 100,
+  "us_per_shot": 9115.431630034436,
+  "code": "PSL(2,7)/[6,3,3] [[6048,40]]",
+  "decoder": "BP+OSD-CS7",
+  "p": 0.03
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 9541.283657599524,
+  "code": "PSL(2,7)/[6,3,3] [[6048,40]]",
+  "decoder": "LRB-MS-0 (vertex GCs)",
+  "p": 0.03
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 11524.475234400234,
+  "code": "PSL(2,7)/[6,3,3] [[6048,40]]",
+  "decoder": "LRB-MS-8 (vertex GCs)",
+  "p": 0.03
+ },
+ {
+  "fails": 1,
+  "unconverged": 1,
+  "shots": 400,
+  "us_per_shot": 18471.797754987165,
+  "code": "PSL(2,7)/[6,3,3] [[6048,40]]",
+  "decoder": "BP (min-sum)",
+  "p": 0.04
+ },
+ {
+  "fails": 1,
+  "unconverged": 1,
+  "shots": 400,
+  "us_per_shot": 20897.72021249246,
+  "code": "PSL(2,7)/[6,3,3] [[6048,40]]",
+  "decoder": "BP+LSD-CS7",
+  "p": 0.04
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 100,
+  "us_per_shot": 12416.0302600103,
+  "code": "PSL(2,7)/[6,3,3] [[6048,40]]",
+  "decoder": "BP+OSD-CS7",
+  "p": 0.04
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 11624.903860500308,
+  "code": "PSL(2,7)/[6,3,3] [[6048,40]]",
+  "decoder": "LRB-MS-0 (vertex GCs)",
+  "p": 0.04
+ },
+ {
+  "fails": 1,
+  "unconverged": 1,
+  "shots": 10000,
+  "us_per_shot": 13881.366236200667,
+  "code": "PSL(2,7)/[6,3,3] [[6048,40]]",
+  "decoder": "LRB-MS-8 (vertex GCs)",
+  "p": 0.04
+ },
+ {
+  "fails": 1,
+  "unconverged": 1,
+  "shots": 400,
+  "us_per_shot": 24377.577499994914,
+  "code": "PSL(2,7)/[6,3,3] [[6048,40]]",
+  "decoder": "BP (min-sum)",
+  "p": 0.05
+ },
+ {
+  "fails": 0,
+  "unconverged": 1,
+  "shots": 400,
+  "us_per_shot": 23826.13821500399,
+  "code": "PSL(2,7)/[6,3,3] [[6048,40]]",
+  "decoder": "BP+LSD-CS7",
+  "p": 0.05
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 100,
+  "us_per_shot": 15043.05964002924,
+  "code": "PSL(2,7)/[6,3,3] [[6048,40]]",
+  "decoder": "BP+OSD-CS7",
+  "p": 0.05
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 14535.662382999,
+  "code": "PSL(2,7)/[6,3,3] [[6048,40]]",
+  "decoder": "LRB-MS-0 (vertex GCs)",
+  "p": 0.05
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 16595.599608401426,
+  "code": "PSL(2,7)/[6,3,3] [[6048,40]]",
+  "decoder": "LRB-MS-8 (vertex GCs)",
+  "p": 0.05
+ },
+ {
+  "fails": 5,
+  "unconverged": 5,
+  "shots": 400,
+  "us_per_shot": 43760.34326750869,
+  "code": "PSL(2,7)/[6,3,3] [[6048,40]]",
+  "decoder": "BP (min-sum)",
+  "p": 0.06
+ },
+ {
+  "fails": 1,
+  "unconverged": 5,
+  "shots": 400,
+  "us_per_shot": 39240.57312000514,
+  "code": "PSL(2,7)/[6,3,3] [[6048,40]]",
+  "decoder": "BP+LSD-CS7",
+  "p": 0.06
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 17406.494218699663,
+  "code": "PSL(2,7)/[6,3,3] [[6048,40]]",
+  "decoder": "LRB-MS-0 (vertex GCs)",
+  "p": 0.06
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 21321.175155999845,
+  "code": "PSL(2,7)/[6,3,3] [[6048,40]]",
+  "decoder": "LRB-MS-8 (vertex GCs)",
+  "p": 0.06
+ },
+ {
+  "fails": 26,
+  "unconverged": 23,
+  "shots": 400,
+  "us_per_shot": 89966.90340000442,
+  "code": "PSL(2,7)/[6,3,3] [[6048,40]]",
+  "decoder": "BP (min-sum)",
+  "p": 0.07
+ },
+ {
+  "fails": 18,
+  "unconverged": 23,
+  "shots": 400,
+  "us_per_shot": 212447.4225225049,
+  "code": "PSL(2,7)/[6,3,3] [[6048,40]]",
+  "decoder": "BP+LSD-CS7",
+  "p": 0.07
+ },
+ {
+  "fails": 3,
+  "unconverged": 1,
+  "shots": 10000,
+  "us_per_shot": 24896.104217000902,
+  "code": "PSL(2,7)/[6,3,3] [[6048,40]]",
+  "decoder": "LRB-MS-0 (vertex GCs)",
+  "p": 0.07
+ },
+ {
+  "fails": 1,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 29617.224783900016,
+  "code": "PSL(2,7)/[6,3,3] [[6048,40]]",
+  "decoder": "LRB-MS-8 (vertex GCs)",
+  "p": 0.07
+ },
+ {
+  "fails": 77,
+  "unconverged": 77,
+  "shots": 100,
+  "us_per_shot": 249805.2275900045,
+  "code": "PSL(2,7)/[6,3,3] [[6048,40]]",
+  "decoder": "BP (min-sum)",
+  "p": 0.08
+ },
+ {
+  "fails": 73,
+  "unconverged": 77,
+  "shots": 100,
+  "us_per_shot": 2978003.9252699865,
+  "code": "PSL(2,7)/[6,3,3] [[6048,40]]",
+  "decoder": "BP+LSD-CS7",
+  "p": 0.08
+ },
+ {
+  "fails": 106,
+  "unconverged": 101,
+  "shots": 2800,
+  "us_per_shot": 57538.740036429124,
+  "code": "PSL(2,7)/[6,3,3] [[6048,40]]",
+  "decoder": "LRB-MS-0 (vertex GCs)",
+  "p": 0.08
+ },
+ {
+  "fails": 110,
+  "unconverged": 107,
+  "shots": 4000,
+  "us_per_shot": 62334.40184699975,
+  "code": "PSL(2,7)/[6,3,3] [[6048,40]]",
+  "decoder": "LRB-MS-8 (vertex GCs)",
+  "p": 0.08
+ },
+ {
+  "fails": 100,
+  "unconverged": 100,
+  "shots": 100,
+  "us_per_shot": 299687.4078900146,
+  "code": "PSL(2,7)/[6,3,3] [[6048,40]]",
+  "decoder": "BP (min-sum)",
+  "p": 0.09
+ },
+ {
+  "fails": 100,
+  "unconverged": 100,
+  "shots": 100,
+  "us_per_shot": 4087773.772899964,
+  "code": "PSL(2,7)/[6,3,3] [[6048,40]]",
+  "decoder": "BP+LSD-CS7",
+  "p": 0.09
+ },
+ {
+  "fails": 292,
+  "unconverged": 292,
+  "shots": 400,
+  "us_per_shot": 213428.65879249986,
+  "code": "PSL(2,7)/[6,3,3] [[6048,40]]",
+  "decoder": "LRB-MS-0 (vertex GCs)",
+  "p": 0.09
+ },
+ {
+  "fails": 266,
+  "unconverged": 266,
+  "shots": 400,
+  "us_per_shot": 285330.0795074983,
+  "code": "PSL(2,7)/[6,3,3] [[6048,40]]",
+  "decoder": "LRB-MS-8 (vertex GCs)",
+  "p": 0.09
+ },
+ {
+  "fails": 74,
+  "unconverged": 74,
+  "shots": 200,
+  "us_per_shot": 1320915.131894999,
+  "code": "PSL(2,7)/[8,4,4] [[10752,56]]",
+  "decoder": "BP (min-sum)",
+  "p": 0.01
+ },
+ {
+  "fails": 50,
+  "unconverged": 148,
+  "shots": 400,
+  "us_per_shot": 5664659.633480005,
+  "code": "PSL(2,7)/[8,4,4] [[10752,56]]",
+  "decoder": "BP+LSD-CS7",
+  "p": 0.01
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 15419.467947498924,
+  "code": "PSL(2,7)/[8,4,4] [[10752,56]]",
+  "decoder": "LRB-MS-0 (vertex GCs)",
+  "p": 0.01
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 17811.238213198158,
+  "code": "PSL(2,7)/[8,4,4] [[10752,56]]",
+  "decoder": "LRB-MS-8 (vertex GCs)",
+  "p": 0.01
+ },
+ {
+  "fails": 96,
+  "unconverged": 96,
+  "shots": 100,
+  "us_per_shot": 3108781.6830799785,
+  "code": "PSL(2,7)/[8,4,4] [[10752,56]]",
+  "decoder": "BP (min-sum)",
+  "p": 0.02
+ },
+ {
+  "fails": 73,
+  "unconverged": 96,
+  "shots": 100,
+  "us_per_shot": 15922770.232719995,
+  "code": "PSL(2,7)/[8,4,4] [[10752,56]]",
+  "decoder": "BP+LSD-CS7",
+  "p": 0.02
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 18183.63972340012,
+  "code": "PSL(2,7)/[8,4,4] [[10752,56]]",
+  "decoder": "LRB-MS-0 (vertex GCs)",
+  "p": 0.02
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 19872.22883630093,
+  "code": "PSL(2,7)/[8,4,4] [[10752,56]]",
+  "decoder": "LRB-MS-8 (vertex GCs)",
+  "p": 0.02
+ },
+ {
+  "fails": 99,
+  "unconverged": 99,
+  "shots": 100,
+  "us_per_shot": 3129289.115219981,
+  "code": "PSL(2,7)/[8,4,4] [[10752,56]]",
+  "decoder": "BP (min-sum)",
+  "p": 0.03
+ },
+ {
+  "fails": 96,
+  "unconverged": 99,
+  "shots": 100,
+  "us_per_shot": 17362669.95990001,
+  "code": "PSL(2,7)/[8,4,4] [[10752,56]]",
+  "decoder": "BP+LSD-CS7",
+  "p": 0.03
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 24980.680575500082,
+  "code": "PSL(2,7)/[8,4,4] [[10752,56]]",
+  "decoder": "LRB-MS-0 (vertex GCs)",
+  "p": 0.03
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 26300.51691000226,
+  "code": "PSL(2,7)/[8,4,4] [[10752,56]]",
+  "decoder": "LRB-MS-8 (vertex GCs)",
+  "p": 0.03
+ },
+ {
+  "fails": 100,
+  "unconverged": 100,
+  "shots": 100,
+  "us_per_shot": 3236803.1276400145,
+  "code": "PSL(2,7)/[8,4,4] [[10752,56]]",
+  "decoder": "BP (min-sum)",
+  "p": 0.04
+ },
+ {
+  "fails": 100,
+  "unconverged": 100,
+  "shots": 100,
+  "us_per_shot": 18448602.824150003,
+  "code": "PSL(2,7)/[8,4,4] [[10752,56]]",
+  "decoder": "BP+LSD-CS7",
+  "p": 0.04
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 35388.07531480052,
+  "code": "PSL(2,7)/[8,4,4] [[10752,56]]",
+  "decoder": "LRB-MS-0 (vertex GCs)",
+  "p": 0.04
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 36635.95088559923,
+  "code": "PSL(2,7)/[8,4,4] [[10752,56]]",
+  "decoder": "LRB-MS-8 (vertex GCs)",
+  "p": 0.04
+ },
+ {
+  "fails": 1,
+  "unconverged": 1,
+  "shots": 10000,
+  "us_per_shot": 50876.694747398506,
+  "code": "PSL(2,7)/[8,4,4] [[10752,56]]",
+  "decoder": "LRB-MS-0 (vertex GCs)",
+  "p": 0.05
+ },
+ {
+  "fails": 1,
+  "unconverged": 1,
+  "shots": 10000,
+  "us_per_shot": 49288.41233020103,
+  "code": "PSL(2,7)/[8,4,4] [[10752,56]]",
+  "decoder": "LRB-MS-8 (vertex GCs)",
+  "p": 0.05
+ },
+ {
+  "fails": 1,
+  "unconverged": 1,
+  "shots": 10000,
+  "us_per_shot": 93342.96415820027,
+  "code": "PSL(2,7)/[8,4,4] [[10752,56]]",
+  "decoder": "LRB-MS-0 (vertex GCs)",
+  "p": 0.06
+ },
+ {
+  "fails": 0,
+  "unconverged": 0,
+  "shots": 10000,
+  "us_per_shot": 74126.07502250103,
+  "code": "PSL(2,7)/[8,4,4] [[10752,56]]",
+  "decoder": "LRB-MS-8 (vertex GCs)",
+  "p": 0.06
+ },
+ {
+  "fails": 240,
+  "unconverged": 240,
+  "shots": 400,
+  "us_per_shot": 492129.59350000345,
+  "code": "PSL(2,7)/[8,4,4] [[10752,56]]",
+  "decoder": "LRB-MS-0 (vertex GCs)",
+  "p": 0.07
+ },
+ {
+  "fails": 103,
+  "unconverged": 103,
+  "shots": 5200,
+  "us_per_shot": 209185.72419057804,
+  "code": "PSL(2,7)/[8,4,4] [[10752,56]]",
+  "decoder": "LRB-MS-8 (vertex GCs)",
+  "p": 0.07
+ },
+ {
+  "fails": 400,
+  "unconverged": 400,
+  "shots": 400,
+  "us_per_shot": 656489.900155002,
+  "code": "PSL(2,7)/[8,4,4] [[10752,56]]",
+  "decoder": "LRB-MS-0 (vertex GCs)",
+  "p": 0.08
+ },
+ {
+  "fails": 375,
+  "unconverged": 375,
+  "shots": 400,
+  "us_per_shot": 760620.003567501,
+  "code": "PSL(2,7)/[8,4,4] [[10752,56]]",
+  "decoder": "LRB-MS-8 (vertex GCs)",
+  "p": 0.08
+ }
+]

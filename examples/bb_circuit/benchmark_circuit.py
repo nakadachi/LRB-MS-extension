@@ -34,7 +34,7 @@ def problem(code, p, rounds):
 def make_decoder(spec, P):
     H, ch = P.H, P.priors
     kind = spec["kind"]
-    common = dict(error_channel=ch, max_iter=spec.get("max_iter", 100))
+    common = dict(error_channel=ch.tolist(), max_iter=spec.get("max_iter", 100))
     if kind == "bp":
         return BpDecoder(H, bp_method=spec.get("bp_method", "minimum_sum"), ms_scaling_factor=spec.get("msf", 0.75),
                          schedule=spec.get("schedule", "serial"), **common)

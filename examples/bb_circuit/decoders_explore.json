@@ -1,0 +1,83 @@
+[
+ {
+  "name": "BP (min-sum)",
+  "kind": "bp"
+ },
+ {
+  "name": "BP+OSD-CS7",
+  "kind": "bposd",
+  "osd_order": 7
+ },
+ {
+  "name": "LRB-MS time-pairs",
+  "kind": "lrbms",
+  "groups": [
+   "time",
+   2
+  ]
+ },
+ {
+  "name": "LRB-MS greedy4",
+  "kind": "lrbms",
+  "groups": [
+   "greedy",
+   4
+  ]
+ },
+ {
+  "name": "LRB-MS greedy8",
+  "kind": "lrbms",
+  "groups": [
+   "greedy",
+   8
+  ]
+ },
+ {
+  "name": "LRB-MS space4",
+  "kind": "lrbms",
+  "groups": [
+   "space",
+   4,
+   1
+  ]
+ },
+ {
+  "name": "LRB-MS space4x2rounds",
+  "kind": "lrbms",
+  "groups": [
+   "space",
+   4,
+   2
+  ]
+ },
+ {
+  "name": "LRB-MS space8",
+  "kind": "lrbms",
+  "groups": [
+   "space",
+   8,
+   1
+  ]
+ },
+ {
+  "name": "LRB-MS greedy8 +OSD",
+  "kind": "lrbms",
+  "groups": [
+   "greedy",
+   8
+  ],
+  "osd_method": "osd_cs",
+  "osd_order": 7
+ },
+ {
+  "name": "LRB-MS space4x2 +OSD",
+  "kind": "lrbms",
+  "groups": [
+   "space",
+   4,
+   2
+  ],
+  "osd_method": "osd_cs",
+  "osd_order": 7
+ }
+]
