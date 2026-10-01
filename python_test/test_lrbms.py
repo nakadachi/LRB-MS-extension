@@ -312,3 +312,26 @@ def test_ensemble_osd_on_last_member_only():
         s = H @ e % 2
         d = ens.decode(s)
         assert ens.converge and np.array_equal(H @ d % 2, s)
+
+
+def test_ensemble_escalate_mode():
+    from ldpc.lrbms_decoder import LrbmsEnsembleDecoder
+    H = bb_code_144()
+    n = H.shape[1]
+    kw = dict(error_rate=0.06, num_groupings=4, max_iter=30, ms_scaling_factor=0.75,
+              osd_method="osd_cs", osd_order=4)
+    esc = LrbmsEnsembleDecoder(H, stop="escalate", **kw)
+    full = LrbmsEnsembleDecoder(H, stop="all", **kw)
+    rng = np.random.default_rng(5)
+    for _ in range(40):
+        e = (rng.random(n) < 0.06).astype(np.uint8)
+        s = H @ e % 2
+        d = esc.decode(s)
+        assert esc.converge and np.array_equal(H @ d % 2, s)
+        first = esc.members[0].decode(s)
+        if esc.members[0].converge:
+            # first member converged: escalate returns its output without running the others
+            assert np.array_equal(d, first)
+        else:
+            # otherwise it behaves exactly like 'all'
+            assert np.array_equal(d, full.decode(s))

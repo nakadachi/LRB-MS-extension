@@ -81,14 +81,35 @@ decoder = LrbmsEnsembleDecoder(
     H, error_rate=0.05,
     ell=8, num_groupings=8,  # greedy groupings grown from permuted row orders
                              # (or pass groupings=[...] explicitly)
-    stop="first",            # "first": stop at the first converged grouping; "all": run all, keep the cheapest
-    osd_members="last",      # OSD fallback only on the last grouping ("all": on every grouping)
+    stop="escalate",         # "escalate": accept the first grouping if it converges, else run all (recommended)
+                             # "all": always run every grouping; "first": stop at the first converged one
+    osd_members="all",       # OSD fallback on every grouping ("last": only on the last one)
     osd_method="osd_cs", osd_order=7,
     max_iter=100, ms_scaling_factor=0.75, schedule="serial",
 )
 correction = decoder.decode(syndrome)
 decoder.converge, decoder.member
 ```
+
+**Choosing the mode.** The ensemble's gain comes almost entirely from shots where the first grouping
+does not converge. In those shots, OSD on several groupings' soft outputs gives several candidates,
+and the lightest one is usually right. Choosing among groupings that all converged gains nothing:
+"all", with OSD only when nothing converged, is no better than "first". Agreement-based and
+weight-based stopping rules also gained nothing. So `stop="escalate"` runs the extra groupings only
+when the first one fails. On BB codes at code capacity, with 8 groupings, it matched "all" in accuracy
+at a fraction of the cost:
+
+| code, p | all | **escalate** | first |
+|---|---|---|---|
+| [[288,12,18]], 0.06 | 1.30e-2, 5.6 ms | **1.32e-2, 2.9 ms** | 1.95e-2, 1.9 ms |
+| [[756,16,≤34]], 0.065 | 4.0e-3, 15.9 ms | **4.0e-3, 5.9 ms** | 6.5e-3, 3.3 ms |
+
+Escalate costs about 3–4× a single LRB-MS decode, instead of about 8× for "all". The groupings
+are independent, so running them in parallel would cut the latency further. Capping `max_iter`
+per grouping helps on some codes: on [[288,12,18]], 10 iterations kept the accuracy and cut the
+"all" time by about 37%. It hurts on others: on [[756,16,≤34]] more groupings fall back to OSD,
+and the time grows. The script is `examples/bb/ensemble_policies.py`. The benchmark tables
+below were measured with "all" and "first".
 
 ### Sinter
 
@@ -105,7 +126,8 @@ The tests check four things:
 - The trellis matches brute-force max-log.
 - LRB-MS is exact whenever its candidate list covers the coset.
 - The OSD fallback works.
-- The ensemble returns the cheapest valid member output.
+- The ensemble returns the cheapest valid member output, and `stop="escalate"` matches `"all"`
+  whenever the first grouping fails.
 
 ## Benchmark: quantum Tanner codes
 
