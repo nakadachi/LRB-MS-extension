@@ -102,8 +102,8 @@ def main():
                     continue
                 # same stim seeds for every decoder at a given p: paired samples
                 seed = zlib.crc32(f"{label}|{p}".encode())
-                res = simulate(pool, args.code, p, args.rounds, spec, args.max_shots, args.max_fails,
-                               args.chunk, seed)
+                res = simulate(pool, args.code, p, args.rounds, spec, spec.get("max_shots", args.max_shots),
+                               spec.get("max_fails", args.max_fails), args.chunk, seed)
                 res.update(code=label, decoder=spec["name"], p=p)
                 results.append(res)
                 print(f"{label} p={p:<6} {spec['name']:>34}: LER={res['fails'] / res['shots']:.2e} "
