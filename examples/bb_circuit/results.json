@@ -1,0 +1,122 @@
+[
+ {
+  "fails": 103,
+  "shots": 3000,
+  "us_per_shot": 644429.6102383257,
+  "code": "[[144,12,12]] x12 rounds",
+  "decoder": "BP+OSD-CS7",
+  "p": 0.003
+ },
+ {
+  "fails": 101,
+  "shots": 3000,
+  "us_per_shot": 656341.6032550097,
+  "code": "[[144,12,12]] x12 rounds",
+  "decoder": "BP+OSD-CS40",
+  "p": 0.003
+ },
+ {
+  "fails": 102,
+  "shots": 2200,
+  "us_per_shot": 274687.52017455036,
+  "code": "[[144,12,12]] x12 rounds",
+  "decoder": "LRB-MS greedy8 +OSD-CS7",
+  "p": 0.003
+ },
+ {
+  "fails": 102,
+  "shots": 2900,
+  "us_per_shot": 776032.5855151678,
+  "code": "[[144,12,12]] x12 rounds",
+  "decoder": "Ensemble x8, first, OSD on last",
+  "p": 0.003
+ },
+ {
+  "fails": 28,
+  "shots": 2000,
+  "us_per_shot": 5373461.359261007,
+  "code": "[[144,12,12]] x12 rounds",
+  "decoder": "Ensemble x8, all, OSD on all",
+  "p": 0.003
+ },
+ {
+  "fails": 6,
+  "shots": 4000,
+  "us_per_shot": 175497.09620650447,
+  "code": "[[144,12,12]] x12 rounds",
+  "decoder": "BP+OSD-CS7",
+  "p": 0.002
+ },
+ {
+  "fails": 7,
+  "shots": 4000,
+  "us_per_shot": 179206.1843219826,
+  "code": "[[144,12,12]] x12 rounds",
+  "decoder": "BP+OSD-CS40",
+  "p": 0.002
+ },
+ {
+  "fails": 24,
+  "shots": 4000,
+  "us_per_shot": 54803.02939174908,
+  "code": "[[144,12,12]] x12 rounds",
+  "decoder": "LRB-MS greedy8 +OSD-CS7",
+  "p": 0.002
+ },
+ {
+  "fails": 6,
+  "shots": 4000,
+  "us_per_shot": 135045.96890099763,
+  "code": "[[144,12,12]] x12 rounds",
+  "decoder": "Ensemble x8, first, OSD on last",
+  "p": 0.002
+ },
+ {
+  "fails": 0,
+  "shots": 2000,
+  "us_per_shot": 1868393.2345174944,
+  "code": "[[144,12,12]] x12 rounds",
+  "decoder": "Ensemble x8, all, OSD on all",
+  "p": 0.002
+ },
+ {
+  "fails": 44,
+  "shots": 4000,
+  "us_per_shot": 366904.3348590103,
+  "code": "[[144,12,12]] x12 rounds",
+  "decoder": "BP+OSD-CS7",
+  "p": 0.0025
+ },
+ {
+  "fails": 42,
+  "shots": 4000,
+  "us_per_shot": 296432.8780402557,
+  "code": "[[144,12,12]] x12 rounds",
+  "decoder": "BP+OSD-CS40",
+  "p": 0.0025
+ },
+ {
+  "fails": 60,
+  "shots": 4000,
+  "us_per_shot": 97311.8892904804,
+  "code": "[[144,12,12]] x12 rounds",
+  "decoder": "LRB-MS greedy8 +OSD-CS7",
+  "p": 0.0025
+ },
+ {
+  "fails": 30,
+  "shots": 4000,
+  "us_per_shot": 304839.99590201164,
+  "code": "[[144,12,12]] x12 rounds",
+  "decoder": "Ensemble x8, first, OSD on last",
+  "p": 0.0025
+ },
+ {
+  "fails": 10,
+  "shots": 2000,
+  "us_per_shot": 3666695.431841519,
+  "code": "[[144,12,12]] x12 rounds",
+  "decoder": "Ensemble x8, all, OSD on all",
+  "p": 0.0025
+ }
+]

@@ -30,7 +30,8 @@ PLOT_EXCLUDE = {"LRB-MS-8 (greedy ell=9)"}
 
 
 def main(path="results.json", codes_path="codes.json", out="qtanner_benchmark.png",
-         title="Quantum Tanner codes", table="results_table.md"):
+         title="Quantum Tanner codes", table="results_table.md",
+         noise="code-capacity X noise, decoded with H_Z", xlabel="physical bit-flip rate p"):
     res = json.load(open(path))
     codes = [c["label"] for c in json.load(open(codes_path))]
     decoders = list(dict.fromkeys(r["decoder"] for r in res))
@@ -41,7 +42,7 @@ def main(path="results.json", codes_path="codes.json", out="qtanner_benchmark.pn
 
     plt.rcParams.update({"font.size": 9, "axes.edgecolor": GRID, "axes.labelcolor": INK2,
                          "xtick.color": INK2, "ytick.color": INK2, "text.color": INK})
-    fig, axes = plt.subplots(2, len(codes), figsize=(4.2 * len(codes), 7.2), sharex=True,
+    fig, axes = plt.subplots(2, len(codes), figsize=(max(4.2 * len(codes), 7.0), 7.2), sharex=True, squeeze=False,
                              facecolor=SURFACE, gridspec_kw=dict(height_ratios=[3, 2]))
     for j, code in enumerate(codes):
         for row, metric in enumerate(["ler", "time"]):
@@ -71,13 +72,14 @@ def main(path="results.json", codes_path="codes.json", out="qtanner_benchmark.pn
                 ax.set_title(code, fontsize=10, color=INK)
                 ax.set_ylim(1e-5, 1.2)
             else:
-                ax.set_xlabel("physical bit-flip rate p")
+                ax.set_xlabel(xlabel)
         axes[0, 0].set_ylabel("logical error rate (per shot)")
         axes[1, 0].set_ylabel("decode time (ms / shot, 1 core)")
-    fig.legend(loc="lower center", ncol=4, frameon=False, bbox_to_anchor=(0.5, -0.01))
-    fig.text(0.5, 0.995, f"{title}, code-capacity X noise, decoded with H_Z  "
+    narrow = len(codes) == 1
+    fig.legend(loc="lower center", ncol=2 if narrow else 4, frameon=False, bbox_to_anchor=(0.5, -0.01))
+    fig.text(0.5, 0.995, f"{title}, {noise}" + ("\n" if narrow else "  ") +
              "(open triangles: 0 failures, 95% upper bound)", ha="center", va="top", color=INK2)
-    fig.tight_layout(rect=(0, 0.07, 1, 0.97))
+    fig.tight_layout(rect=(0, 0.13 if narrow else 0.07, 1, 0.95 if narrow else 0.97))
     fig.savefig(out, dpi=150, facecolor=SURFACE)
 
     lines = []
