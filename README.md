@@ -569,6 +569,29 @@ shots (`examples/mbp_ladder.py`):
   convergences, and the code had no failures at all in 4 000 shots at p ≤ 0.09. Its best first
   leg is μ = 0.75; μ = 0.45 fails 2% of shots at p = 0.08.
 
+### The screenshot setups
+
+We reran three relay-ladder setups from the original analysis notes with this decoder. They use
+depolarizing noise at total p, with the same shots for every ladder.
+
+| setup | decoder | base leg | μ-only ladder | (μ, α) ladder |
+|---|---|---|---|---|
+| A: [[288,12,18]] floor, p = 0.04, 600k shots | ℓ = 6, I = 1000, LRB order 1 | (0.75, 1): 0 fails | → (0.9, 1) → (0.55, 1): 0 | → (1.0, 0.9) → (0.9, 0.8): 0 |
+| B: [[288,12,18]] near threshold, p = 0.075, 120k shots | same | 67 fails (5.6e-4) | 11 (9.2e-5), ×6.1 | **6 (5.0e-5), ×11.2** |
+| C: [[432,20]] quantum Tanner, p = 0.03, 1.2M shots | ℓ = 9 (vertex groups), I = 40, LRB order 16 | (0.45, 1): 95 fails (7.9e-5) | → (0.60, 1): **0** (≥ ×95) | — |
+
+- **A:** this decoder shows no floor at p = 0.04 for [[288,12,18]], with LRB order 6 or order 1. The
+  original notes report 19 base failures in 600k shots. That points to a different noise convention
+  (for example p per Pauli rather than total) or a decoder difference.
+- **B:** the original notes report the μ-only ladder at ×4.1; we measure ×6.1. Adding α to the
+  ladder roughly doubles the gain.
+- **C:** the original [[432,20,22]] code was not available. We used a stand-in built on A4 with
+  [6,3,3] local codes (`examples/qtanner/search_432.py`). It has k = 20 but distance ≤ 16
+  (information-set bound): no order-12 instance we found reached d = 22. As in the notes, the
+  second leg removed every base failure. However, a single leg with μ = 0.75 also had 0 failures
+  in the same 1.2M shots. So on this code the floor at μ = 0.45 comes from the first leg's μ being
+  too small, and the retry mainly moves back towards a better μ.
+
 ## License
 
 MIT, see [LICENSE](LICENSE). This project is built on a fork of the `ldpc` package.
