@@ -580,9 +580,9 @@ depolarizing noise at total p, with the same shots for every ladder.
 | B: [[288,12,18]] near threshold, p = 0.075, 120k shots | same | 67 fails (5.6e-4) | 11 (9.2e-5), ×6.1 | **6 (5.0e-5), ×11.2** |
 | C: [[432,20]] quantum Tanner, p = 0.03, 1.2M shots | ℓ = 9 (vertex groups), I = 40, LRB order 16 | (0.45, 1): 95 fails (7.9e-5) | → (0.60, 1): **0** (≥ ×95) | — |
 
-- **A:** this decoder shows no floor at p = 0.04 for [[288,12,18]], with LRB order 6 or order 1. The
-  original notes report 19 base failures in 600k shots. That points to a different noise convention
-  (for example p per Pauli rather than total) or a decoder difference.
+- **A:** this decoder shows no floor at p = 0.04 for [[288,12,18]] under total depolarizing noise,
+  with LRB order 6 or order 1. The original notes report 19 base failures in 600k shots. See the
+  noise-convention check below.
 - **B:** the original notes report the μ-only ladder at ×4.1; we measure ×6.1. Adding α to the
   ladder roughly doubles the gain.
 - **C:** the original [[432,20,22]] code was not available. We used a stand-in built on A4 with
@@ -591,6 +591,24 @@ depolarizing noise at total p, with the same shots for every ladder.
   second leg removed every base failure. However, a single leg with μ = 0.75 also had 0 failures
   in the same 1.2M shots. So on this code the floor at μ = 0.45 comes from the first leg's μ being
   too small, and the retry mainly moves back towards a better μ.
+
+**Noise-convention check.** `examples/mbp_ladder.py` can sample four definitions of p (environment
+variable `MBP_CONV`). The decoder always uses the true channel. On setup A (p = 0.04, order 1):
+
+| convention | p_X, p_Y, p_Z | base failures |
+|---|---|---|
+| `total` (default) | p/3 each | 0 / 600k |
+| `perpauli` | p each | 8.99e-2 |
+| `marginal` (X and Z parts each flip w.p. p) | p/2 each | **20 / 600k (3.3e-5)** |
+| `indep` (independent X and Z flips) | p(1−p), p², p(1−p) | 2.25e-3 |
+
+Under `marginal`, A reproduces the notes almost exactly. The base leg gives 20 failures (notes: 19),
+the μ-only ladder 3 (notes: 1), and the (μ, α) ladder 1. That convention does not fit B, though.
+At p = 0.075 it gives 5.0e-2 base failures against 2.0e-3 in the notes. Under `total`, B's base rate
+of 2.0e-3 is matched at p ≈ 0.085 (2.3e-3 here; the μ-only ladder then gives 6.75e-4, notes 4.9e-4).
+So A matches at our total p ≈ 0.06 (1.5× the notes' p) and B at ≈ 0.085 (1.13×). No single noise
+definition reproduces both. The two original runs probably used different noise conventions, or the
+original decoder differs near threshold.
 
 ## License
 

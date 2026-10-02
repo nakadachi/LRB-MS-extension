@@ -61,11 +61,31 @@ def code(name):
     return _CACHE[name]
 
 
+# Noise convention for "p" (env MBP_CONV): "total" depolarizing p (p/3 per Pauli, default),
+# "perpauli" (p_X = p_Y = p_Z = p), "marginal" (X and Z parts each flip w.p. p: p/2 per Pauli),
+# "indep" (independent X and Z flips w.p. p each: p_X = p_Z = p(1-p), p_Y = p^2).
+import os
+CONV = os.environ.get("MBP_CONV", "total")
+
+
+def pauli_probs(p):
+    if CONV == "total":
+        return p / 3, p / 3, p / 3
+    if CONV == "perpauli":
+        return p, p, p
+    if CONV == "marginal":
+        return p / 2, p / 2, p / 2
+    if CONV == "indep":
+        return p * (1 - p), p * p, p * (1 - p)
+    raise ValueError(CONV)
+
+
 def sample(rng, n, p):
+    px, py, pz = pauli_probs(p)
     r = rng.random(n)
-    x = r < p / 3
-    y = (r >= p / 3) & (r < 2 * p / 3)
-    z = (r >= 2 * p / 3) & (r < p)
+    x = r < px
+    y = (r >= px) & (r < px + py)
+    z = (r >= px + py) & (r < px + py + pz)
     return (x | y).astype(np.uint8), (z | y).astype(np.uint8)
 
 
@@ -79,7 +99,7 @@ def outcome(dec, hx, hz, lx, lz, ex, ez, sx, sz):
 
 def make(name, p, mu, alpha):
     hx, hz, lx, lz, xg, zg, it, order = code(name)
-    return MbpLrbmsDecoder(hx, hz, error_rate=p, x_groups=xg, z_groups=zg, max_iter=it, mu=mu,
+    return MbpLrbmsDecoder(hx, hz, channel=pauli_probs(p), x_groups=xg, z_groups=zg, max_iter=it, mu=mu,
                            alpha=alpha, lrbms_order=order, schedule="serial")
 
 
@@ -155,7 +175,7 @@ def main():
         with mp.Pool(w) as pool:
             parts = pool.map(run_ladders, [(name, p, shots // w, 4242 + k, ladders) for k in range(w)])
         n = (shots // w) * w
-        print(f"{name} p={p}: {n} shots, I={code(name)[6]}")
+        print(f"{name} p={p} conv={CONV}: {n} shots, I={code(name)[6]}")
         for li, lad in enumerate(ladders):
             fails = sum(r[li][0] for r in parts)
             wrong = sum(r[li][1] for r in parts)
