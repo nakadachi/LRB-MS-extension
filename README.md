@@ -17,7 +17,7 @@ The C++ core lives in `src_cpp/lrbms.hpp` and the Python bindings in `ldpc.lrbms
 | Quantum Tanner codes, [8,4,4] local codes, n = 3840 and 10752 | LRB-MS-8, one GC per vertex | BP, BP+LSD-CS7, BP+OSD-CS7 | no failures in 10 000 shots up to p = 0.04, where the baselines fail most or all shots; 200–9000× faster |
 | BB codes [[360,12]], [[756,16]], code capacity | ensemble ×8 over groupings | BP+OSD-CS40 | 1.7–3.7× fewer logical errors, about 10× the decode time |
 | BB [[144,12,12]], circuit-level, 12 rounds | ensemble ×8 over groupings | BP+OSD-CS7/CS40 | 2.1–2.4× fewer logical errors at p = 0.0025–0.003, about 10× the decode time |
-| BB [[288,12,18]], depolarizing | MBP4 + LRB-MS with a (μ, α) relay ladder | the same decoder without retries | 11–12× fewer logical errors at p = 0.065–0.075, same average decode time |
+| BB [[288,12,18]], total depolarizing p | MBP4 + LRB-MS with a (μ, α) relay ladder | the same decoder without retries | 11–20× fewer logical errors at p = 0.06–0.075, same average decode time |
 
 LRB-MS gains the most when groups of checks form strong local codes, as in Tanner-type codes.
 On BB codes a single LRB-MS decoder is not better than BP+OSD, and the gain comes from the ensemble.
@@ -571,20 +571,23 @@ shots (`examples/mbp_ladder.py`):
 
 ### The screenshot setups
 
-We reran three relay-ladder setups from the original analysis notes with this decoder. They use
-depolarizing noise at total p, with the same shots for every ladder.
+We reran three relay-ladder setups from the original analysis notes with this decoder. Everything
+here uses **total depolarizing noise**: p is the total error probability per qubit, split p/3 per
+Pauli. This is the convention for all results in this repository. Every ladder sees the same shots.
 
 | setup | decoder | base leg | μ-only ladder | (μ, α) ladder |
 |---|---|---|---|---|
-| A: [[288,12,18]] floor, p = 0.04, 600k shots | ℓ = 6, I = 1000, LRB order 1 | (0.75, 1): 0 fails | → (0.9, 1) → (0.55, 1): 0 | → (1.0, 0.9) → (0.9, 0.8): 0 |
+| A: [[288,12,18]] floor, p = 0.06, 600k shots | ℓ = 6, I = 1000, LRB order 1 | (0.75, 1): 20 fails (3.3e-5) | → (0.9, 1) → (0.55, 1): 3 (5.0e-6), ×6.7 | → (1.0, 0.9) → (0.9, 0.8): **1 (1.7e-6), ×20** |
 | B: [[288,12,18]] near threshold, p = 0.075, 120k shots | same | 67 fails (5.6e-4) | 11 (9.2e-5), ×6.1 | **6 (5.0e-5), ×11.2** |
 | C: [[432,20]] quantum Tanner, p = 0.03, 1.2M shots | ℓ = 9 (vertex groups), I = 40, LRB order 16 | (0.45, 1): 95 fails (7.9e-5) | → (0.60, 1): **0** (≥ ×95) | — |
 
-- **A:** this decoder shows no floor at p = 0.04 for [[288,12,18]] under total depolarizing noise,
-  with LRB order 6 or order 1. The original notes report 19 base failures in 600k shots. See the
-  noise-convention check below.
-- **B:** the original notes report the μ-only ladder at ×4.1; we measure ×6.1. Adding α to the
-  ladder roughly doubles the gain.
+- **A (floor):** at p = 0.04 this decoder has no failures in 600k shots, with LRB order 6 or 1, so
+  the floor is probed at p = 0.06. There the base leg's 20 failures in 600k match the 19 that the
+  notes report for their floor run. The μ-only ladder leaves 3 (notes: 1). The (μ, α) ladder leaves
+  1, a wrong convergence, so a retry cannot remove it.
+- **B (near threshold):** the notes report the μ-only ladder at ×4.1; we measure ×6.1. Adding α to
+  the ladder roughly doubles the gain. The notes' base rate (2.0e-3) corresponds to p ≈ 0.085 here:
+  2.3e-3 base, and 6.75e-4 after the μ-only ladder (notes: 4.9e-4).
 - **C:** the original [[432,20,22]] code was not available. We used a stand-in built on A4 with
   [6,3,3] local codes (`examples/qtanner/search_432.py`). It has k = 20 but distance ≤ 16
   (information-set bound): no order-12 instance we found reached d = 22. As in the notes, the
@@ -592,23 +595,15 @@ depolarizing noise at total p, with the same shots for every ladder.
   in the same 1.2M shots. So on this code the floor at μ = 0.45 comes from the first leg's μ being
   too small, and the retry mainly moves back towards a better μ.
 
-**Noise-convention check.** `examples/mbp_ladder.py` can sample four definitions of p (environment
-variable `MBP_CONV`). The decoder always uses the true channel. On setup A (p = 0.04, order 1):
+The notes' p values do not map onto total depolarizing p consistently. Their floor run matches our
+p = 0.06, which is 1.5× their 0.04; their near-threshold run matches p ≈ 0.085, which is 1.13× their
+0.075. So their two runs probably used different noise settings. `examples/mbp_ladder.py` can
+sample other conventions through the environment variable `MBP_CONV`, for comparison only:
+- `perpauli`: p per Pauli;
+- `marginal`: the X and Z parts each flip with probability p;
+- `indep`: independent X and Z flips.
 
-| convention | p_X, p_Y, p_Z | base failures |
-|---|---|---|
-| `total` (default) | p/3 each | 0 / 600k |
-| `perpauli` | p each | 8.99e-2 |
-| `marginal` (X and Z parts each flip w.p. p) | p/2 each | **20 / 600k (3.3e-5)** |
-| `indep` (independent X and Z flips) | p(1−p), p², p(1−p) | 2.25e-3 |
-
-Under `marginal`, A reproduces the notes almost exactly. The base leg gives 20 failures (notes: 19),
-the μ-only ladder 3 (notes: 1), and the (μ, α) ladder 1. That convention does not fit B, though.
-At p = 0.075 it gives 5.0e-2 base failures against 2.0e-3 in the notes. Under `total`, B's base rate
-of 2.0e-3 is matched at p ≈ 0.085 (2.3e-3 here; the μ-only ladder then gives 6.75e-4, notes 4.9e-4).
-So A matches at our total p ≈ 0.06 (1.5× the notes' p) and B at ≈ 0.085 (1.13×). No single noise
-definition reproduces both. The two original runs probably used different noise conventions, or the
-original decoder differs near threshold.
+The default, `total`, is the one used throughout.
 
 ## License
 

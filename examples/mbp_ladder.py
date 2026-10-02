@@ -65,6 +65,7 @@ def code(name):
 # "perpauli" (p_X = p_Y = p_Z = p), "marginal" (X and Z parts each flip w.p. p: p/2 per Pauli),
 # "indep" (independent X and Z flips w.p. p each: p_X = p_Z = p(1-p), p_Y = p^2).
 import os
+# Results in this repository use "total"; the others are for comparison only.
 CONV = os.environ.get("MBP_CONV", "total")
 
 
