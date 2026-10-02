@@ -28,8 +28,11 @@ sys.path.insert(0, str(HERE / "qtanner"))
 # name: (builder, ell, max_iter, lrbms_order)
 CODES = {
     "bb288": ("bb", "[[288,12,18]]", 6, 1000, 6),
+    "bb288o1": ("bb", "[[288,12,18]]", 6, 1000, 1),   # LRB order 1, as in the screenshots
     "bb144": ("bb", "[[144,12,12]]", 6, 1000, 6),
     "qtC16": ("qt", "C16", 9, 40, 16),
+    # stand-in for the screenshots' qt432_20: A4, [6,3,3] local codes, k = 20, d <= 16 (info-set bound)
+    "qt432": ("qt432", None, 9, 40, 16),
 }
 _CACHE = {}
 
@@ -42,6 +45,14 @@ def code(name):
         from bb_codes import BBCode
         c = BBCode(key)
         xg, zg = overlap_check_groups(c.hx, ell), overlap_check_groups(c.hz, ell)
+    elif kind == "qt432":
+        from qtanner_codes import build_qtanner, group_table
+        from search_432 import GROUPS12
+        from search_codes import H_A
+        mul, _, _ = group_table(GROUPS12["A4"]())
+        c = build_qtanner(mul, [3, 4, 6, 8, 9, 11], [1, 2, 3, 7, 9, 10], H_A, H_A[:, [0, 5, 4, 1, 2, 3]])
+        assert c.lx.shape[0] == 20
+        xg, zg = c.vertex_groups("x"), c.vertex_groups("z")
     else:
         from benchmark import load_code
         c = load_code(dict(label="C16", group="C16", A=[1, 4, 5, 11, 12, 15], B=[2, 6, 7, 9, 10, 14]))
