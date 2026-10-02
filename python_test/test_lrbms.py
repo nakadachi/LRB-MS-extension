@@ -335,3 +335,64 @@ def test_ensemble_escalate_mode():
         else:
             # otherwise it behaves exactly like 'all'
             assert np.array_equal(d, full.decode(s))
+
+
+# ------------------------------------------------------------- MBP4 + LRB-MS hybrid
+
+def _bb144_css():
+    H = bb_code_144()   # H_X = [A|B]; H_Z = [B^T|A^T]
+    n = H.shape[1]
+    m = H.shape[0]
+    A, B = H[:, : n // 2], H[:, n // 2:]
+    hz = np.hstack([B.T, A.T]).astype(np.uint8)
+    return H.astype(np.uint8), hz
+
+
+def test_mbp_lrbms_reduces_to_binary_lrbms_for_pure_x_noise():
+    from ldpc.lrbms_decoder import MbpLrbmsDecoder
+    hx, hz = _bb144_css()
+    n = hx.shape[1]
+    p = 0.05
+    groups = overlap_check_groups(hz, 6)
+    hyb = MbpLrbmsDecoder(hx, hz, channel=(p, 0.0, 0.0), z_groups=groups, x_groups=6,
+                          max_iter=50, mu=0.75, alpha=1.0, lrbms_order=4, schedule="serial")
+    ref = LrbmsDecoder(hz, error_rate=p, check_groups=groups, max_iter=50,
+                       ms_scaling_factor=0.75, lrbms_order=4, schedule="serial")
+    rng = np.random.default_rng(3)
+    for _ in range(60):
+        e = (rng.random(n) < p).astype(np.uint8)
+        sz = hz @ e % 2
+        ex, ez = hyb.decode(np.zeros(hx.shape[0], dtype=np.uint8), sz)
+        d = ref.decode(sz)
+        assert np.array_equal(ex, d)
+        assert not ez.any()
+        assert hyb.converge == ref.converge
+        if ref.converge:
+            assert hyb.iterations == ref.iterations
+
+
+def test_mbp_lrbms_depolarizing_outputs_and_setters():
+    from ldpc.lrbms_decoder import MbpLrbmsDecoder
+    hx, hz = _bb144_css()
+    n = hx.shape[1]
+    p = 0.06
+    dec = MbpLrbmsDecoder(hx, hz, error_rate=p, x_groups=6, z_groups=6, max_iter=60,
+                          mu=0.75, alpha=0.9, lrbms_order=1)
+    rng = np.random.default_rng(4)
+    converged = 0
+    for _ in range(40):
+        r = rng.random(n)
+        ex = ((r < p / 3) | ((r >= p / 3) & (r < 2 * p / 3))).astype(np.uint8)   # X or Y
+        ez = (((r >= p / 3) & (r < 2 * p / 3)) | ((r >= 2 * p / 3) & (r < p))).astype(np.uint8)  # Y or Z
+        sx, sz = hx @ ez % 2, hz @ ex % 2
+        dx, dz = dec.decode(sx, sz)
+        if dec.converge:
+            converged += 1
+            assert np.array_equal(hz @ dx % 2, sz) and np.array_equal(hx @ dz % 2, sx)
+    assert converged >= 30
+    dec.mu, dec.alpha, dec.schedule, dec.max_iter = 0.9, 0.7, "parallel", 20
+    assert (dec.mu, dec.alpha, dec.schedule, dec.max_iter) == (0.9, 0.7, "parallel", 20)
+    with pytest.raises(ValueError):
+        dec.alpha = 0.0
+    with pytest.raises(ValueError):
+        MbpLrbmsDecoder(hx, hx, error_rate=0.05)   # hx with itself does not commute

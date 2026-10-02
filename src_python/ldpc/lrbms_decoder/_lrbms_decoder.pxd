@@ -49,6 +49,34 @@ cdef extern from "lrbms.hpp" namespace "ldpc::lrbms":
         void set_check_groups(vector[vector[int]]& groups) except +
         int max_group_size()
 
+cdef extern from "mbp_lrbms.hpp" namespace "ldpc::lrbms":
+
+    cdef cppclass MbpLrbmsDecoderCpp "ldpc::lrbms::MbpLrbmsDecoder":
+        MbpLrbmsDecoderCpp(int n,
+                           vector[vector[int]]& hx_rows,
+                           vector[vector[int]]& hz_rows,
+                           vector[vector[int]]& x_groups,
+                           vector[vector[int]]& z_groups,
+                           vector[double]& px,
+                           vector[double]& py,
+                           vector[double]& pz,
+                           int max_iter,
+                           double mu,
+                           double alpha,
+                           int order,
+                           LrbmsSchedule sched,
+                           double clip) except +
+        int maximum_iterations
+        double alpha
+        LrbmsSchedule schedule
+        vector[uint8_t] ex
+        vector[uint8_t] ez
+        int iterations
+        bool converge
+        void set_channel(vector[double]& px, vector[double]& py, vector[double]& pz) except +
+        void set_mu(double mu)
+        void decode(vector[uint8_t]& sx, vector[uint8_t]& sz) except +
+
 cdef class LrbmsDecoder:
     cdef LrbmsDecoderCpp* lrbmsd
     cdef int m, n
@@ -61,3 +89,13 @@ cdef class LrbmsDecoder:
     cdef vector[double] _llr
     cdef bool OSD_ALLOCATED
     cdef bool _osd_used
+
+cdef class MbpLrbmsDecoder:
+    cdef MbpLrbmsDecoderCpp* dec
+    cdef int n, mx, mz
+    cdef double _mu
+    cdef vector[uint8_t] _sx
+    cdef vector[uint8_t] _sz
+    cdef object _x_groups
+    cdef object _z_groups
+    cdef bool MEMORY_ALLOCATED

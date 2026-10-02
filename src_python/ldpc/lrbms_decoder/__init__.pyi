@@ -179,3 +179,86 @@ class LrbmsDecoder:
 
     @property
     def pcm_shape(self): ...
+
+
+
+
+def _rows_of(H): ...
+
+
+class MbpLrbmsDecoder:
+    """
+    MBP4 + LRB-MS: quaternary memory-BP variable nodes with LRB-MS generalized checks.
+
+    Decodes X and Z errors of a CSS code jointly (e.g. under depolarizing noise). Rows of
+    ``hz`` are grouped into generalized checks acting on the x-part of the error, rows of
+    ``hx`` into generalized checks acting on the z-part. Each check group is updated with the
+    binary LRB-MS rule, its output scaled by ``mu``; each qubit keeps quaternary log-ratios
+    updated with the MBP4 rule of Kuo and Lai: incoming check messages are weighted by
+    ``1/alpha`` in the posterior, and the message back to a check subtracts that check's
+    previous output without the ``1/alpha`` factor (memory / inhibition for ``alpha < 1``).
+
+    Parameters
+    ----------
+    hx, hz : X-check and Z-check matrices (np.ndarray or scipy.sparse).
+    error_rate : Optional[float]
+        Depolarizing probability p (p_X = p_Y = p_Z = p/3).
+    channel : Optional[tuple]
+        ``(px, py, pz)``, each a float or a per-qubit sequence. Overrides ``error_rate``.
+    x_groups, z_groups :
+        Groupings of the rows of ``hx`` / ``hz`` (None, int ell, or list of row lists), as for
+        :class:`LrbmsDecoder`.
+    max_iter, mu, alpha, lrbms_order, schedule, llr_clip :
+        Iterations; min-sum normalisation at the checks; MBP4 normalisation at the variable
+        nodes; LRB-MS order; ``'serial'`` or ``'parallel'``; message clip.
+    """
+
+    def __cinit__(self, hx, hz, error_rate=None, channel=None, x_groups=None, z_groups=None,
+                  max_iter=100, mu=0.75, alpha=1.0, lrbms_order=0, schedule="serial", llr_clip=50.0): ...
+
+    def __dealloc__(self): ...
+
+    def _resolve(self, H, groups): ...
+
+    def _resolve_channel(self, error_rate, channel): ...
+
+    def update_channel(self, error_rate=None, channel=None) -> None: ...
+
+    def decode(self, syndrome_x, syndrome_z):
+        """Decode; ``syndrome_x`` = hx @ e_z, ``syndrome_z`` = hz @ e_x. Returns ``(e_x, e_z)``."""
+
+    @property
+    def mu(self) -> float: ...
+
+    @mu.setter
+    def mu(self, value) -> None: ...
+
+    @property
+    def alpha(self) -> float: ...
+
+    @alpha.setter
+    def alpha(self, value) -> None: ...
+
+    @property
+    def max_iter(self) -> int: ...
+
+    @max_iter.setter
+    def max_iter(self, value) -> None: ...
+
+    @property
+    def schedule(self) -> str: ...
+
+    @schedule.setter
+    def schedule(self, value) -> None: ...
+
+    @property
+    def x_groups(self): ...
+
+    @property
+    def z_groups(self): ...
+
+    @property
+    def converge(self) -> bool: ...
+
+    @property
+    def iterations(self) -> int: ...

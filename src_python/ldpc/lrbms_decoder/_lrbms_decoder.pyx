@@ -395,3 +395,184 @@ cdef class LrbmsDecoder:
     def pcm_shape(self):
         return (self.m, self.n)
 
+
+
+
+def _rows_of(H):
+    cdef vector[vector[int]] rows
+    rows.resize(H.shape[0])
+    for i in range(H.shape[0]):
+        for j in H.indices[H.indptr[i]:H.indptr[i + 1]]:
+            rows[i].push_back(int(j))
+    return rows
+
+
+cdef class MbpLrbmsDecoder:
+    """
+    MBP4 + LRB-MS: quaternary memory-BP variable nodes with LRB-MS generalized checks.
+
+    Decodes X and Z errors of a CSS code jointly (e.g. under depolarizing noise). Rows of
+    ``hz`` are grouped into generalized checks acting on the x-part of the error, rows of
+    ``hx`` into generalized checks acting on the z-part. Each check group is updated with the
+    binary LRB-MS rule, its output scaled by ``mu``; each qubit keeps quaternary log-ratios
+    updated with the MBP4 rule of Kuo and Lai: incoming check messages are weighted by
+    ``1/alpha`` in the posterior, and the message back to a check subtracts that check's
+    previous output without the ``1/alpha`` factor (memory / inhibition for ``alpha < 1``).
+
+    Parameters
+    ----------
+    hx, hz : X-check and Z-check matrices (np.ndarray or scipy.sparse).
+    error_rate : Optional[float]
+        Depolarizing probability p (p_X = p_Y = p_Z = p/3).
+    channel : Optional[tuple]
+        ``(px, py, pz)``, each a float or a per-qubit sequence. Overrides ``error_rate``.
+    x_groups, z_groups :
+        Groupings of the rows of ``hx`` / ``hz`` (None, int ell, or list of row lists), as for
+        :class:`LrbmsDecoder`.
+    max_iter, mu, alpha, lrbms_order, schedule, llr_clip :
+        Iterations; min-sum normalisation at the checks; MBP4 normalisation at the variable
+        nodes; LRB-MS order; ``'serial'`` or ``'parallel'``; message clip.
+    """
+
+    def __cinit__(self, hx, hz, error_rate=None, channel=None, x_groups=None, z_groups=None,
+                  max_iter=100, mu=0.75, alpha=1.0, lrbms_order=0, schedule="serial", llr_clip=50.0):
+        self.MEMORY_ALLOCATED = False
+        Hx = scipy.sparse.csr_matrix(ldpc.helpers.scipy_helpers.convert_to_binary_sparse(hx))
+        Hz = scipy.sparse.csr_matrix(ldpc.helpers.scipy_helpers.convert_to_binary_sparse(hz))
+        Hx.eliminate_zeros()
+        Hz.eliminate_zeros()
+        if Hx.shape[1] != Hz.shape[1]:
+            raise ValueError("hx and hz must have the same number of columns.")
+        if ((Hx @ Hz.T).toarray() % 2).any():
+            raise ValueError("hx and hz do not commute (not a CSS code).")
+        self.n, self.mx, self.mz = Hx.shape[1], Hx.shape[0], Hz.shape[0]
+        self._x_groups = self._resolve(Hx, x_groups)
+        self._z_groups = self._resolve(Hz, z_groups)
+        px, py, pz = self._resolve_channel(error_rate, channel)
+        sched = str(schedule).lower()
+        if sched not in ("serial", "parallel"):
+            raise ValueError("schedule must be 'serial' or 'parallel'.")
+        if alpha <= 0:
+            raise ValueError("alpha must be positive.")
+        cdef vector[vector[int]] hxr = _rows_of(Hx)
+        cdef vector[vector[int]] hzr = _rows_of(Hz)
+        cdef vector[vector[int]] xg = self._x_groups
+        cdef vector[vector[int]] zg = self._z_groups
+        cdef vector[double] cpx = px
+        cdef vector[double] cpy = py
+        cdef vector[double] cpz = pz
+        self.dec = new MbpLrbmsDecoderCpp(self.n, hxr, hzr, xg, zg, cpx, cpy, cpz, int(max_iter),
+                                          float(mu), float(alpha), int(lrbms_order),
+                                          SERIAL if sched == "serial" else PARALLEL, float(llr_clip))
+        self.MEMORY_ALLOCATED = True
+        self._mu = float(mu)
+        self._sx.resize(self.mx)
+        self._sz.resize(self.mz)
+
+    def __dealloc__(self):
+        if self.MEMORY_ALLOCATED:
+            del self.dec
+
+    def _resolve(self, H, groups):
+        if groups is None:
+            return [[i] for i in range(H.shape[0])]
+        if isinstance(groups, (int, np.integer)):
+            return overlap_check_groups(H, int(groups))
+        out = [[int(r) for r in g] for g in groups]
+        for g in out:
+            for r in g:
+                if r < 0 or r >= H.shape[0]:
+                    raise ValueError(f"Check group row index {r} out of range [0, {H.shape[0]}).")
+        return out
+
+    def _resolve_channel(self, error_rate, channel):
+        if channel is not None:
+            if len(channel) != 3:
+                raise ValueError("channel must be (px, py, pz).")
+            return [list(np.broadcast_to(np.asarray(c, dtype=float), (self.n,))) for c in channel]
+        if error_rate is None:
+            raise ValueError("Please specify error_rate (depolarizing) or channel=(px, py, pz).")
+        return [[float(error_rate) / 3.0] * self.n for _ in range(3)]
+
+    def update_channel(self, error_rate=None, channel=None) -> None:
+        px, py, pz = self._resolve_channel(error_rate, channel)
+        cdef vector[double] cpx = px
+        cdef vector[double] cpy = py
+        cdef vector[double] cpz = pz
+        self.dec.set_channel(cpx, cpy, cpz)
+
+    def decode(self, syndrome_x, syndrome_z):
+        """Decode; ``syndrome_x`` = hx @ e_z, ``syndrome_z`` = hz @ e_x. Returns ``(e_x, e_z)``."""
+        cdef int i
+        cdef uint8_t bit
+        sx = np.asarray(syndrome_x)
+        sz = np.asarray(syndrome_z)
+        if sx.shape[0] != self.mx or sz.shape[0] != self.mz:
+            raise ValueError("Syndrome lengths do not match hx / hz.")
+        for i in range(self.mx):
+            bit = 1 if sx[i] else 0
+            self._sx[i] = bit
+        for i in range(self.mz):
+            bit = 1 if sz[i] else 0
+            self._sz[i] = bit
+        self.dec.decode(self._sx, self._sz)
+        ex = np.empty(self.n, dtype=np.uint8)
+        ez = np.empty(self.n, dtype=np.uint8)
+        for i in range(self.n):
+            ex[i] = self.dec.ex[i]
+            ez[i] = self.dec.ez[i]
+        return ex, ez
+
+    @property
+    def mu(self) -> float:
+        return self._mu
+
+    @mu.setter
+    def mu(self, value) -> None:
+        self._mu = float(value)
+        self.dec.set_mu(self._mu)
+
+    @property
+    def alpha(self) -> float:
+        return self.dec.alpha
+
+    @alpha.setter
+    def alpha(self, value) -> None:
+        if value <= 0:
+            raise ValueError("alpha must be positive.")
+        self.dec.alpha = float(value)
+
+    @property
+    def max_iter(self) -> int:
+        return self.dec.maximum_iterations
+
+    @max_iter.setter
+    def max_iter(self, value) -> None:
+        self.dec.maximum_iterations = int(value)
+
+    @property
+    def schedule(self) -> str:
+        return "serial" if self.dec.schedule == SERIAL else "parallel"
+
+    @schedule.setter
+    def schedule(self, value) -> None:
+        v = str(value).lower()
+        if v not in ("serial", "parallel"):
+            raise ValueError("schedule must be 'serial' or 'parallel'.")
+        self.dec.schedule = SERIAL if v == "serial" else PARALLEL
+
+    @property
+    def x_groups(self):
+        return self._x_groups
+
+    @property
+    def z_groups(self):
+        return self._z_groups
+
+    @property
+    def converge(self) -> bool:
+        return self.dec.converge
+
+    @property
+    def iterations(self) -> int:
+        return self.dec.iterations
