@@ -17,6 +17,7 @@ The C++ core lives in `src_cpp/lrbms.hpp` and the Python bindings in `ldpc.lrbms
 | Quantum Tanner codes, [8,4,4] local codes, n = 3840 and 10752 | LRB-MS-8, one GC per vertex | BP, BP+LSD-CS7, BP+OSD-CS7 | no failures in 10 000 shots up to p = 0.04, where the baselines fail most or all shots; 200–9000× faster |
 | BB codes [[360,12]], [[756,16]], code capacity | ensemble ×8 over groupings | BP+OSD-CS40 | 1.7–3.7× fewer logical errors, about 10× the decode time |
 | BB [[144,12,12]], circuit-level, 12 rounds | ensemble ×8 over groupings | BP+OSD-CS7/CS40 | 2.1–2.4× fewer logical errors at p = 0.0025–0.003, about 10× the decode time |
+| BB [[288,12,18]], depolarizing | MBP4 + LRB-MS with a (μ, α) relay ladder | the same decoder without retries | 11–12× fewer logical errors at p = 0.065–0.075, same average decode time |
 
 LRB-MS gains the most when groups of checks form strong local codes, as in Tanner-type codes.
 On BB codes a single LRB-MS decoder is not better than BP+OSD, and the gain comes from the ensemble.
@@ -111,6 +112,32 @@ per grouping helps on some codes: on [[288,12,18]], 10 iterations kept the accur
 and the time grows. The script is `examples/bb/ensemble_policies.py`. The benchmark tables
 below were measured with "all" and "first".
 
+### MBP4 + LRB-MS hybrid (depolarizing noise)
+
+`MbpLrbmsDecoder` decodes the X and Z parts of a CSS-code error jointly. Each qubit keeps
+quaternary log-ratios Γᵂ = ln P(I)/P(W), for W = X, Y, Z, updated with the MBP4 rule of
+Kuo and Lai. The checks are LRB-MS generalized checks, grouped within one check type: a Z-type
+group sees only the x-part of each qubit's error, and an X-type group only the z-part. The
+decoder has two scaling knobs:
+
+- **μ (`mu`)** scales each check group's output (min-sum normalisation at the check nodes).
+- **α (`alpha`)** weights incoming check messages by 1/α in each qubit's posterior. The message
+  back to a check subtracts that check's previous output without the 1/α factor, which is
+  MBP's memory / inhibition effect for α < 1.
+
+With p_Y = p_Z = 0 and α = 1, the decoder reproduces binary LRB-MS exactly (tested).
+
+```python
+from ldpc.lrbms_decoder import MbpLrbmsDecoder
+
+dec = MbpLrbmsDecoder(hx, hz, error_rate=0.06,      # depolarizing p (p/3 per Pauli); or channel=(px, py, pz)
+                      x_groups=6, z_groups=6,       # groupings of the rows of hx / hz
+                      max_iter=1000, mu=0.75, alpha=1.0, lrbms_order=6, schedule="serial")
+ex, ez = dec.decode(hx @ ez_true % 2, hz @ ex_true % 2)
+dec.converge
+dec.mu, dec.alpha = 1.0, 0.9                        # change the knobs between decodes (e.g. relay retries)
+```
+
 ### Sinter
 
 For stim/sinter workflows use `ldpc.sinter_decoders.SinterLrbmsDecoder`.
@@ -128,6 +155,7 @@ The tests check four things:
 - The OSD fallback works.
 - The ensemble returns the cheapest valid member output, and `stop="escalate"` matches `"all"`
   whenever the first grouping fails.
+- The MBP4 + LRB-MS hybrid reproduces binary LRB-MS for pure X noise with α = 1.
 
 ## Benchmark: quantum Tanner codes
 
@@ -509,6 +537,37 @@ Logical error rate per shot (12 rounds), with mean decode time per shot on one c
 
 The circuit construction, detector groupings and benchmark script are in
 [`examples/bb_circuit`](examples/bb_circuit).
+
+## Benchmark: (μ, α) relay ladders with the MBP4 + LRB-MS hybrid
+
+A relay ladder retries a decode with new (μ, α) settings only when the previous attempt did not
+converge, so the average cost barely changes. We tested ladders on BB [[288,12,18]] under
+depolarizing code-capacity noise (p = total error probability, p/3 per Pauli). The decoder uses
+greedy groups of ℓ = 6 rows per check type, I = 1000 iterations, LRB order 6 and a serial schedule.
+Ladders were searched on a (μ, α) grid with μ in 0.45–1.0 and α in 0.6–1.25: chosen greedily on one
+half of the base decoder's failures and scored on the other half. The final comparison uses fresh
+shots (`examples/mbp_ladder.py`):
+
+| [[288,12,18]] | base (0.75, 1) | μ-only ladder → (0.9, 1) → (0.55, 1) | (μ, α) ladder → (1.0, 0.9) → (0.9, 0.8) |
+|---|---|---|---|
+| p = 0.065, 600k shots | 107 fails (1.8e-4) | 18 (3.0e-5), ×5.9 | **9 (1.5e-5), ×11.9** |
+| p = 0.075, 120k shots | 97 fails (8.1e-4) | 21 (1.75e-4), ×4.6 | **9 (7.5e-5), ×10.8** |
+
+- **α is worth adjusting.** The best single retries all change α as well as μ. Retrying with
+  (1.0, 0.9) alone rescued 73 of 85 (p = 0.075) and 38 of 43 (p = 0.065) held-out base failures,
+  against 62 of 85 and 36 of 43 for (0.9, 1.0).
+- **One retry can buy about an order of magnitude.** In the held-out search at p = 0.065, adding
+  the leg (1.0, 0.9) cut failures 9.5×, from 1.27e-4 to 1.33e-5.
+- **The floor is wrong convergence.** At p = 0.065, all 9 failures left after the (μ, α) ladder
+  converged to a wrong correction, which a retry cannot fix. The ensemble's lightest-answer
+  selection or OSD would have to address those.
+- **No floor at p = 0.04.** The base leg had 0 failures in 600 000 shots at p = 0.04, and 0 in
+  40 000 at p = 0.055, so there was no floor there to remove.
+- **The Tanner code gains little in its waterfall.** On the C16 quantum Tanner code
+  ([[576,32]], ℓ = 9 vertex groups, I = 40, LRB order 16), at p = 0.10 a 4-leg ladder gained only
+  ×1.7: 1.25e-3 → 7.3e-4 on held-out shots. Almost a fifth of its failures there are wrong
+  convergences, and the code had no failures at all in 4 000 shots at p ≤ 0.09. Its best first
+  leg is μ = 0.75; μ = 0.45 fails 2% of shots at p = 0.08.
 
 ## License
 
