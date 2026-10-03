@@ -18,6 +18,7 @@ The C++ core lives in `src_cpp/lrbms.hpp` and the Python bindings in `ldpc.lrbms
 | BB codes [[360,12]], [[756,16]], code capacity | ensemble ×8 over groupings | BP+OSD-CS40 | 1.7–3.7× fewer logical errors, about 10× the decode time |
 | BB [[144,12,12]], circuit-level, 12 rounds | ensemble ×8 over groupings | BP+OSD-CS7/CS40 | 2.1–2.4× fewer logical errors at p = 0.0025–0.003, about 10× the decode time |
 | BB [[288,12,18]], total depolarizing p | MBP4 + LRB-MS with a (μ, α) relay ladder | the same decoder without retries | 11–20× fewer logical errors at p = 0.06–0.075, same average decode time |
+| BB [[144,12,12]], total depolarizing p | MBP4 + LRB-MS, lightest of 3–5 (μ, α) legs | the same decoder, single leg | 3.0–4.1× fewer logical errors at p = 0.06, 2.6–5× the decode time; a stopping ladder gives only ×1.7 |
 
 LRB-MS gains the most when groups of checks form strong local codes, as in Tanner-type codes.
 On BB codes a single LRB-MS decoder is not better than BP+OSD, and the gain comes from the ensemble.
@@ -568,6 +569,38 @@ shots (`examples/mbp_ladder.py`):
   ×1.7: 1.25e-3 → 7.3e-4 on held-out shots. Almost a fifth of its failures there are wrong
   convergences, and the code had no failures at all in 4 000 shots at p ≤ 0.09. Its best first
   leg is μ = 0.75; μ = 0.45 fails 2% of shots at p = 0.08.
+
+### BB [[144,12,12]]: stopping ladder vs lightest of several legs
+
+Relay decoding gains little on [[144,12,12]] with a stopping ladder (same decoder: ℓ = 6, I = 1000,
+LRB order 6, total depolarizing p, 40k shots per point):
+
+| p | base (0.75, 1) | μ-only ladder | (μ, α) ladder |
+|---|---|---|---|
+| 0.03 | 1 fail (wrong convergence) | 1 | 1 |
+| 0.045 | 13 (9 wrong convergences) | 9 (×1.4) | 10 (×1.3) |
+| 0.06 | 74 (32 wrong convergences) | 53 (×1.4) | 44 (×1.7) |
+
+Most [[144]] failures are wrong convergences, which a stopping ladder cannot retry. The retries
+resolve almost all non-converged shots (the (μ, α) ladder all of them), but some converge to wrong
+corrections. Of the 45 wrong convergences left at p = 0.06, 22 were heavier than the true error.
+The other 23 (18 of equal weight, 5 lighter) would defeat any minimum-weight decoder.
+
+Running several (μ, α) legs on every shot and keeping the valid output with the fewest
+non-identity Paulis catches the heavier wrong answers (`examples/mbp_lightest.py`). These use the
+same 40k shots, with legs (0.75, 1), (1.0, 0.9), (0.9, 0.8), (0.6, 1.0) and (1.0, 1.1):
+
+| [[144]], p = 0.06 | fails | time / shot |
+|---|---|---|
+| base | 74 | 0.31 ms |
+| stopping ladder (first 3 legs) | 44 (×1.7) | 0.30 ms |
+| **lightest of 3 legs** | **25 (×3.0)** | 0.81 ms |
+| lightest of 5 legs | 18 (×4.1) | 1.56 ms |
+
+On [[288,12,18]] (p = 0.075), lightest-of-legs adds nothing over the stopping ladder: 3 failures
+in 40k shots either way, at 3.4× the time. Almost all of that code's failures are non-convergence.
+Use the stopping ladder when failures are mostly non-convergence ([[288]]). Use lightest-of-legs when
+wrong convergences dominate ([[144]]).
 
 ### The screenshot setups
 
