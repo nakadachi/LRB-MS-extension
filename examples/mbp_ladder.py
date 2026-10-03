@@ -145,7 +145,7 @@ def base_failures(args):
 
 
 GRID_MU = (0.45, 0.55, 0.6, 0.65, 0.75, 0.9, 1.0)
-GRID_ALPHA = (0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.25)
+GRID_ALPHA = (0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.25, 1.5)
 
 
 def grid_outcomes(args):
@@ -211,7 +211,9 @@ def main():
           ", ".join(f"({grid[g][0]:g},{grid[g][1]:g}) {c}/{len(train)}" for c, g in solo[:6]))
     ladder, remaining = [], list(train)
     for _ in range(levels):
-        best = max(range(len(grid)), key=lambda g: sum(table[i][g] == "ok" for i in remaining))
+        # a wrong convergence ends the ladder, so score rescues minus new wrong convergences
+        best = max(range(len(grid)), key=lambda g: sum(table[i][g] == "ok" for i in remaining)
+                   - sum(table[i][g] == "wrong" for i in remaining))
         if not any(table[i][best] == "ok" for i in remaining):
             break
         ladder.append(best)
