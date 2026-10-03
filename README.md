@@ -618,6 +618,34 @@ The earlier code-capacity headroom estimate also put minimum-weight decoding onl
 BP+OSD on this code. On [[288,12,18]], whose failures are mostly non-convergence, a stopping
 ladder already gives 11–20× at no extra cost.
 
+### Verifying the reported gross-code ladder
+
+The original analysis reports a ×1.7–2.4 ladder gain for BB gross [[144,12,12]], capped by wrong
+convergences. Its configuration:
+- **Reference:** a single decode with ℓ = 6, LRB order δ = 6, (μ*, α, I) = (0.75, 1.0, 40).
+- **Ladder:** the reference, then on non-convergence (0.90, 1.0, 150) → (0.75, 0.9, 150) →
+  (0.60, 1.0, 150).
+
+We reran exactly this under total depolarizing noise, with identical shots for all three
+decoders. Legs can now carry their own iteration count in `examples/mbp_ladder.py`, e.g.
+`"0.75,1.0,40;0.90,1.0,150"`.
+
+| p | shots | reference (I = 40) | ladder | ladder gain | single decode, I = 1000 | ladder vs I = 1000 |
+|---|---|---|---|---|---|---|
+| 0.04 | 400k | 53 (1.3e-4) | 37 (34 wrong conv.) | ×1.4 | 43 | ×1.2 |
+| 0.05 | 200k | 131 (6.6e-4) | 74 (66 wrong) | ×1.8 | 99 | ×1.3 |
+| 0.06 | 120k | 301 (2.5e-3) | 161 (129 wrong) | ×1.9 | 220 | ×1.4 |
+| 0.07 | 60k | 409 (6.8e-3) | 226 (176 wrong) | ×1.8 | 311 | ×1.4 |
+
+- **The gain is confirmed:** ×1.4–1.9, at the lower end of the reported ×1.7–2.4.
+- **About a third to a half of it is iteration budget.** A single decode at I = 1000 already
+  improves on the 40-iteration reference by ×1.2–1.4. Against that, the ladder's own gain is
+  ×1.2–1.4.
+- **Wrong convergences cap it.** 80–92% of the ladder's remaining failures are wrong
+  convergences, which no further rung can fix.
+- **The ladder is cheap:** 0.14–0.28 ms per shot, about the reference's cost and less than the
+  single I = 1000 decode at higher p. The rungs fire on only 0.006–0.5% of shots.
+
 ### The screenshot setups
 
 We reran three relay-ladder setups from the original analysis notes with this decoder. Everything

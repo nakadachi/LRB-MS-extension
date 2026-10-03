@@ -108,7 +108,8 @@ def run_ladders(args):
     """For each shot, run every ladder; record outcome and time of each."""
     name, p, shots, seed, ladders = args
     hx, hz, lx, lz, *_ = code(name)
-    dec = make(name, p, *ladders[0][0])
+    dec = make(name, p, *ladders[0][0][:2])
+    default_iter = code(name)[6]
     rng = np.random.default_rng(seed)
     res = [[0, 0, 0.0, [0] * len(lad)] for lad in ladders]   # fails, wrong, time, fires per leg
     for _ in range(shots):
@@ -117,8 +118,10 @@ def run_ladders(args):
         for li, lad in enumerate(ladders):
             t0 = time.perf_counter()
             o = "unconv"
-            for leg, (mu, alpha) in enumerate(lad):
-                dec.mu, dec.alpha = mu, alpha
+            for leg, spec in enumerate(lad):
+                # leg = (mu, alpha) or (mu, alpha, max_iter); default max_iter = the code's I
+                dec.mu, dec.alpha = spec[0], spec[1]
+                dec.max_iter = int(spec[2]) if len(spec) > 2 else default_iter
                 res[li][3][leg] += 1
                 o = outcome(dec, hx, hz, lx, lz, ex, ez, sx, sz)
                 if o != "unconv":
@@ -182,12 +185,12 @@ def main():
             wrong = sum(r[li][1] for r in parts)
             tm = sum(r[li][2] for r in parts) / n
             fires = [sum(r[li][3][k] for r in parts) for k in range(len(lad))]
-            legs = " -> ".join(f"({m:g},{a:g})" for m, a in lad)
+            legs = " -> ".join("(" + ",".join(f"{v:g}" for v in leg) + ")" for leg in lad)
             print(f"  {legs:<40} fails {fails:5d} ({wrong} wrong)  LER {fails / n:.2e}  "
                   f"{1e3 * tm:.2f} ms/shot  legs fired {fires}", flush=True)
         return
 
-    mu0, a0 = parse_ladder(sys.argv[5])[0]
+    mu0, a0 = parse_ladder(sys.argv[5])[0][:2]
     levels = int(sys.argv[6]) if len(sys.argv) > 6 else 3
     with mp.Pool(w) as pool:
         fails = [f for ch in pool.map(base_failures, [(name, p, shots // w, 777 + k, mu0, a0) for k in range(w)])
