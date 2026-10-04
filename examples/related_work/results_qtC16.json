@@ -310,5 +310,13 @@
   "code": "qtC16",
   "decoder": "MBP4+LRB-MS-8+ladder (ours)",
   "p": 0.1
+ },
+ {
+  "fails": 53,
+  "shots": 14400,
+  "ms_per_shot": 3.0325077137502316,
+  "code": "qtC16",
+  "decoder": "MBP4+LRB-MS-8+ladder (ours)",
+  "p": 0.11
  }
 ]

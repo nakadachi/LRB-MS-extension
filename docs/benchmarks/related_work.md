@@ -138,9 +138,48 @@ per vertex, at most 100 iterations and no OSD.
   than MBP4+OSD-1 at p = 0.05–0.06, at about half the time of MBP4+OSD-1 and GMBP4. Plain
   BP+OSD-CS7 is faster still, but 14–31× less accurate.
 
+### Post-processing: OSD-1 against a relay ladder
+
+GMBP4 rescues non-converged shots with OSD-1. The like-for-like counterpart for MBP4 + LRB-MS
+is a relay ladder: retry with new (μ, α) only when the previous attempt did not converge. The
+legs were chosen greedily on separate tuning samples (`tune_ladder.py`). Almost all base
+failures are non-convergence there: 0 of 83 on [[432,16]] were wrong convergences, 5 of 63 on
+C16 and 0 of 95 on [[250]].
+
+| code | ladder legs (μ, α) |
+|---|---|
+| [[432,16,28]] | (0.75, 1) → (0.7, 1) → (0.6, 1) → (0.7, 0.9) |
+| C16 [[576,32]] | (0.75, 1) → (0.85, 1) → (0.8, 1) → (0.7, 1) |
+| [[250,10,15]] | (0.95, 1) → (0.9, 0.9) → (0.95, 0.8) → (0.85, 0.9) |
+
+Same test samples as above (the ladder ran up to 200 000 shots):
+
+| code, p | GMBP4+OSD-1 [Mostad] | MBP4+LRB-MS | **MBP4+LRB-MS + ladder** | ladder vs GMBP4 |
+|---|---|---|---|---|
+| [[432,16]], 0.07 | 1.7e-4, 58 ms | 3.0e-5, 0.86 ms | **0 (/200 000), 0.92 ms** | ≥ 5× fewer failures, 63× faster |
+| [[432,16]], 0.08 | 4.2e-4, 71 ms | 1.6e-4, 1.07 ms | **4.0e-5, 1.08 ms** | 10×, 65× |
+| [[432,16]], 0.09 | 5.4e-3, 87 ms | 1.5e-3, 1.48 ms | **5.2e-4, 1.45 ms** | 10×, 60× |
+| [[432,16]], 0.10 | 2.9e-2, 102 ms | 9.8e-3, 2.17 ms | **4.6e-3, 2.79 ms** | 6×, 37× |
+| C16, 0.08 | 5e-5 (1 fail), 15 ms | 9.0e-5, 1.15 ms | 6.5e-5, 1.17 ms | tie, 13× |
+| C16, 0.09 | 9.5e-4, 20 ms | 3.9e-4, 1.36 ms | **1.7e-4, 1.41 ms** | 5.6×, 14× |
+| C16, 0.10 | 8.3e-3, 26 ms | 1.6e-3, 1.62 ms | **9.5e-4, 1.82 ms** | 8.8×, 14× |
+| C16, 0.11 | 5.5e-2, 35 ms | 7.8e-3, 2.31 ms | **3.7e-3, 3.03 ms** | 15×, 12× |
+| [[250,10,15]], 0.0518 | 0 (/100 000), 1.6 ms | 1.6e-4, 0.37 ms | 2.0e-5, 0.38 ms | GMBP4 better (≤ 3.7e-5), 4.2× |
+| [[250,10,15]], 0.0685 | 2.3e-4, 2.4 ms | 9.5e-4, 0.51 ms | 2.35e-4, 0.52 ms | tie, 4.7× |
+| [[250,10,15]], 0.0906 | 1.0e-2, 3.6 ms | 1.5e-2, 1.11 ms | **5.7e-3, 1.44 ms** | 1.8×, 2.5× |
+
+- **The ladder is nearly free.** It fires only on the shots that did not converge, so the mean
+  time rises by 0–31%. It cuts failures 1.4–8× relative to the single leg.
+- **With post-processing on both sides, MBP4 + LRB-MS is ahead on every code where the local
+  code has more than 6 checks.** On [[432,16]] it has 6–10× fewer failures than GMBP4+OSD-1
+  at 37–65× less time. On C16 it has 5.6–15× fewer failures above p = 0.08 at 12–14× less time.
+- **On the small-local-code [[250,10,15]], it now matches GMBP4** at p = 0.0685, is 1.8× better
+  at p = 0.0906 and is 2.5–4.7× faster. GMBP4 keeps a small edge at p ≤ 0.0518, where both
+  rarely fail.
+
 ### Caveats
 
-- LRB-MS's μ was tuned per code on separate samples. The other decoders use their papers'
+- LRB-MS's μ and ladder legs were tuned per code on separate samples. The other decoders use their papers'
   settings, which their authors tuned on their own codes; GMBP4's a = 1.6 was chosen on the
   [[432,16]] code itself.
 - Every decoder runs single-threaded. SOGRAND's queries and the MAP trellis both parallelise
@@ -163,6 +202,7 @@ per vertex, at most 100 iterations and no OSD.
 | MBP4+LRB-MS-8 (ours) | 3.0e-05 | 1.6e-04 | 9.5e-04 | 1.5e-02 |
 | MBP4+MAP, 100 it. (exact GC) | 2.9e-04 | 3.7e-04 | 1.5e-03 | 1.8e-02 |
 | LEAD α=0.01 [Xiao et al.] | 5.7e-03 | 2.7e-02 | 1.2e-01 | 4.2e-01 |
+| MBP4+LRB-MS-8+ladder (ours) | 0 (/200000) | 2.0e-05 | 2.3e-04 | 5.7e-03 |
 
 **[[250,10,15]]**, mean decode time per shot
 
@@ -177,6 +217,7 @@ per vertex, at most 100 iterations and no OSD.
 | MBP4+LRB-MS-8 (ours) | 0.32 ms | 0.37 ms | 0.51 ms | 1.11 ms |
 | MBP4+MAP, 100 it. (exact GC) | 0.68 ms | 0.78 ms | 1.11 ms | 2.01 ms |
 | LEAD α=0.01 [Xiao et al.] | 1.52 ms | 1.96 ms | 2.82 ms | 4.58 ms |
+| MBP4+LRB-MS-8+ladder (ours) | 0.33 ms | 0.38 ms | 0.52 ms | 1.44 ms |
 
 **[[432,16,28]]**, logical error rate
 
@@ -189,6 +230,7 @@ per vertex, at most 100 iterations and no OSD.
 | LEAD [Xiao et al.] | 3.0e-01 | 5.3e-01 | 7.6e-01 | 8.9e-01 | 9.6e-01 |
 | LEAD α=0.01 [Xiao et al.] | 1.5e-01 | 3.0e-01 | 5.8e-01 | 7.7e-01 | 9.1e-01 |
 | MBP4+LRB-MS-8 (ours) | 1.0e-05 | 3.0e-05 | 1.6e-04 | 1.5e-03 | 9.8e-03 |
+| MBP4+LRB-MS-8+ladder (ours) | 0 (/200000) | 0 (/200000) | 4.0e-05 | 5.2e-04 | 4.6e-03 |
 
 **[[432,16,28]]**, mean decode time per shot
 
@@ -201,6 +243,7 @@ per vertex, at most 100 iterations and no OSD.
 | LEAD [Xiao et al.] | 21.78 ms | 32.96 ms | 47.19 ms | 56.53 ms | 57.34 ms |
 | LEAD α=0.01 [Xiao et al.] | 11.33 ms | 21.84 ms | 32.08 ms | 46.74 ms | 56.53 ms |
 | MBP4+LRB-MS-8 (ours) | 0.73 ms | 0.86 ms | 1.07 ms | 1.48 ms | 2.17 ms |
+| MBP4+LRB-MS-8+ladder (ours) | 0.76 ms | 0.92 ms | 1.08 ms | 1.45 ms | 2.79 ms |
 
 **[[576,32,≤16]] C16**, logical error rate
 
@@ -213,6 +256,7 @@ per vertex, at most 100 iterations and no OSD.
 | LEAD [Xiao et al.] | 2.6e-01 | 5.5e-01 | 7.4e-01 | 9.2e-01 | 9.6e-01 |
 | LEAD α=0.01 [Xiao et al.] | 7.0e-02 | 2.8e-01 | 4.7e-01 | 7.8e-01 | 9.0e-01 |
 | MBP4+LRB-MS-8 (ours) | 3.0e-05 | 9.0e-05 | 3.9e-04 | 1.6e-03 | 7.8e-03 |
+| MBP4+LRB-MS-8+ladder (ours) | 1.5e-05 | 6.5e-05 | 1.7e-04 | 9.5e-04 | 3.7e-03 |
 
 **[[576,32,≤16]] C16**, mean decode time per shot
 
@@ -225,6 +269,7 @@ per vertex, at most 100 iterations and no OSD.
 | LEAD [Xiao et al.] | 17.73 ms | 27.45 ms | 36.94 ms | 53.91 ms | 57.58 ms |
 | LEAD α=0.01 [Xiao et al.] | 8.62 ms | 18.01 ms | 26.10 ms | 43.16 ms | 54.74 ms |
 | MBP4+LRB-MS-8 (ours) | 1.00 ms | 1.15 ms | 1.36 ms | 1.62 ms | 2.31 ms |
+| MBP4+LRB-MS-8+ladder (ours) | 1.02 ms | 1.17 ms | 1.41 ms | 1.82 ms | 3.03 ms |
 
 **BB [[144,12,12]]**, logical error rate
 

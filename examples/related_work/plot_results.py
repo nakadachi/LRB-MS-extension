@@ -21,6 +21,7 @@ SURFACE, INK, INK2, GRID = "#fcfcfb", "#0b0b0b", "#52514e", "#e4e3df"
 STYLES = {
     "MBP4+LRB-MS-8 (ours)": ("#2a78d6", "o", "-"),
     "MBP4+LRB-MS-6 (ours)": ("#2a78d6", "o", "-"),
+    "MBP4+LRB-MS-8+ladder (ours)": ("#2a78d6", "*", "--"),
     "GMBP4+OSD-1 [Mostad et al.]": ("#eb6834", "s", "-"),
     "SOGRAND+XZ [Rapp et al.]": ("#1baf7a", "D", "-"),
     "SOGRAND [Rapp et al.]": ("#1baf7a", "D", "--"),

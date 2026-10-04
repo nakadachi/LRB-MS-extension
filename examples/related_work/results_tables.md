@@ -12,6 +12,7 @@
 | MBP4+LRB-MS-8 (ours) | 3.0e-05 | 1.6e-04 | 9.5e-04 | 1.5e-02 |
 | MBP4+MAP, 100 it. (exact GC) | 2.9e-04 | 3.7e-04 | 1.5e-03 | 1.8e-02 |
 | LEAD α=0.01 [Xiao et al.] | 5.7e-03 | 2.7e-02 | 1.2e-01 | 4.2e-01 |
+| MBP4+LRB-MS-8+ladder (ours) | 0 (/200000) | 2.0e-05 | 2.3e-04 | 5.7e-03 |
 
 **[[250,10,15]]**, mean decode time per shot
 
@@ -26,6 +27,7 @@
 | MBP4+LRB-MS-8 (ours) | 0.32 ms | 0.37 ms | 0.51 ms | 1.11 ms |
 | MBP4+MAP, 100 it. (exact GC) | 0.68 ms | 0.78 ms | 1.11 ms | 2.01 ms |
 | LEAD α=0.01 [Xiao et al.] | 1.52 ms | 1.96 ms | 2.82 ms | 4.58 ms |
+| MBP4+LRB-MS-8+ladder (ours) | 0.33 ms | 0.38 ms | 0.52 ms | 1.44 ms |
 
 **[[432,16,28]]**, logical error rate
 
@@ -38,6 +40,7 @@
 | LEAD [Xiao et al.] | 3.0e-01 | 5.3e-01 | 7.6e-01 | 8.9e-01 | 9.6e-01 |
 | LEAD α=0.01 [Xiao et al.] | 1.5e-01 | 3.0e-01 | 5.8e-01 | 7.7e-01 | 9.1e-01 |
 | MBP4+LRB-MS-8 (ours) | 1.0e-05 | 3.0e-05 | 1.6e-04 | 1.5e-03 | 9.8e-03 |
+| MBP4+LRB-MS-8+ladder (ours) | 0 (/200000) | 0 (/200000) | 4.0e-05 | 5.2e-04 | 4.6e-03 |
 
 **[[432,16,28]]**, mean decode time per shot
 
@@ -50,6 +53,7 @@
 | LEAD [Xiao et al.] | 21.78 ms | 32.96 ms | 47.19 ms | 56.53 ms | 57.34 ms |
 | LEAD α=0.01 [Xiao et al.] | 11.33 ms | 21.84 ms | 32.08 ms | 46.74 ms | 56.53 ms |
 | MBP4+LRB-MS-8 (ours) | 0.73 ms | 0.86 ms | 1.07 ms | 1.48 ms | 2.17 ms |
+| MBP4+LRB-MS-8+ladder (ours) | 0.76 ms | 0.92 ms | 1.08 ms | 1.45 ms | 2.79 ms |
 
 **[[576,32,≤16]] C16**, logical error rate
 
@@ -62,6 +66,7 @@
 | LEAD [Xiao et al.] | 2.6e-01 | 5.5e-01 | 7.4e-01 | 9.2e-01 | 9.6e-01 |
 | LEAD α=0.01 [Xiao et al.] | 7.0e-02 | 2.8e-01 | 4.7e-01 | 7.8e-01 | 9.0e-01 |
 | MBP4+LRB-MS-8 (ours) | 3.0e-05 | 9.0e-05 | 3.9e-04 | 1.6e-03 | 7.8e-03 |
+| MBP4+LRB-MS-8+ladder (ours) | 1.5e-05 | 6.5e-05 | 1.7e-04 | 9.5e-04 | 3.7e-03 |
 
 **[[576,32,≤16]] C16**, mean decode time per shot
 
@@ -74,6 +79,7 @@
 | LEAD [Xiao et al.] | 17.73 ms | 27.45 ms | 36.94 ms | 53.91 ms | 57.58 ms |
 | LEAD α=0.01 [Xiao et al.] | 8.62 ms | 18.01 ms | 26.10 ms | 43.16 ms | 54.74 ms |
 | MBP4+LRB-MS-8 (ours) | 1.00 ms | 1.15 ms | 1.36 ms | 1.62 ms | 2.31 ms |
+| MBP4+LRB-MS-8+ladder (ours) | 1.02 ms | 1.17 ms | 1.41 ms | 1.82 ms | 3.03 ms |
 
 **BB [[144,12,12]]**, logical error rate
 

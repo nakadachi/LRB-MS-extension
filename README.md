@@ -66,6 +66,10 @@ Logical error rate and mean decode time per shot, one core.
   2.6–6× fewer failures.
 - **Small local codes:** on [[250,10,15]] (64-state trellis), GMBP4 is the most accurate, at
   3–5× our time.
+- **Post-processing on both sides:** GMBP4 ends with OSD-1. Giving LRB-MS a (μ, α) relay ladder
+  instead costs 0–31% extra time. With it, LRB-MS has 6–10× fewer failures than GMBP4+OSD-1 on
+  [[432,16]] and 5.6–15× fewer on C16 (p ≥ 0.09), and ties or beats it on [[250,10,15]] at
+  p ≥ 0.0685 ([details](docs/benchmarks/related_work.md#post-processing-osd-1-against-a-relay-ladder)).
 
 ### BB codes: the grouping ensemble beats BP+OSD, and the gap grows with code size
 
