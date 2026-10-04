@@ -1,6 +1,6 @@
 # LRB-MS on bivariate bicycle codes
 
-The results and findings are in the [main README](../../README.md#benchmark-bivariate-bicycle-codes).
+The results and findings are in the [main README](../../docs/benchmarks/bb_codes.md).
 
 ![benchmark](bb_benchmark.png)
 
