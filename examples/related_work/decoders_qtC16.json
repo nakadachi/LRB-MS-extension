@@ -59,5 +59,32 @@
   "alpha": 1.0,
   "schedule": "serial",
   "max_iter": 100
+ },
+ {
+  "name": "MBP4+LRB-MS-8+ladder (ours)",
+  "kind": "ladder",
+  "groups": "vertex",
+  "gc_method": "lrbms",
+  "t": 8,
+  "schedule": "serial",
+  "max_iter": 100,
+  "legs": [
+   [
+    0.75,
+    1.0
+   ],
+   [
+    0.85,
+    1.0
+   ],
+   [
+    0.8,
+    1.0
+   ],
+   [
+    0.7,
+    1.0
+   ]
+  ]
  }
 ]

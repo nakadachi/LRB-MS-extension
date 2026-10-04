@@ -5,6 +5,7 @@ match its syndrome or the residual flips a logical. Decoder specs (JSON list, se
 decoders_*.json files) have a ``kind``:
 
 - ``mbp``    : MbpLrbmsDecoder (joint X/Z decoding); any gc_method, optional OSD.
+- ``ladder`` : MbpLrbmsDecoder with (mu, alpha[, max_iter]) retries on non-convergence.
 - ``gmbp``   : the hybrid GMBP4 decoder of Mostad et al. (GmbpDecoder).
 - ``binary`` : one LrbmsDecoder per CSS half with the marginal rate 2p/3.
 - ``lead``   : one LeadDecoder per CSS half with the marginal rate 2p/3.
@@ -49,6 +50,26 @@ class SplitDecoder:
         return self.x_part.decode(syndrome_z), self.z_part.decode(syndrome_x)
 
 
+class LadderDecoder:
+    """Relay ladder: retries with the next (mu, alpha[, max_iter]) leg only while the previous
+    legs did not converge. The last leg's output is returned if none converges."""
+
+    def __init__(self, decoder, legs):
+        self.decoder, self.legs = decoder, legs
+        self.default_max_iter = decoder.max_iter
+        self.legs_fired = 0
+
+    def decode(self, syndrome_x, syndrome_z):
+        for index, leg in enumerate(self.legs):
+            self.decoder.mu, self.decoder.alpha = leg[0], leg[1]
+            self.decoder.max_iter = int(leg[2]) if len(leg) > 2 else self.default_max_iter
+            decoded = self.decoder.decode(syndrome_x, syndrome_z)
+            self.legs_fired = index + 1
+            if self.decoder.converge:
+                break
+        return decoded
+
+
 def _sogrand_settings(spec):
     return dict(
         sogrand_list_size=spec.get("list_size", 4),
@@ -66,6 +87,9 @@ def _osd(spec):
 def make_decoder(spec, code, p):
     kind = spec["kind"]
     groups = spec.get("groups")
+    if kind == "ladder":
+        base = dict(spec, kind="mbp", mu=spec["legs"][0][0], alpha=spec["legs"][0][1])
+        return LadderDecoder(make_decoder(base, code, p), spec["legs"])
     if kind == "mbp":
         return MbpLrbmsDecoder(
             code.hx,
