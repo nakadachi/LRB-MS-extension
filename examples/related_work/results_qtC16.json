@@ -318,5 +318,45 @@
   "code": "qtC16",
   "decoder": "MBP4+LRB-MS-8+ladder (ours)",
   "p": 0.11
+ },
+ {
+  "fails": 2,
+  "shots": 20000,
+  "ms_per_shot": 5.582312126349916,
+  "code": "qtC16",
+  "decoder": "SOGRAND+XZ+ladder [Rapp et al. + ours]",
+  "p": 0.07
+ },
+ {
+  "fails": 0,
+  "shots": 20000,
+  "ms_per_shot": 7.345429451698874,
+  "code": "qtC16",
+  "decoder": "SOGRAND+XZ+ladder [Rapp et al. + ours]",
+  "p": 0.08
+ },
+ {
+  "fails": 22,
+  "shots": 20000,
+  "ms_per_shot": 10.638010255098061,
+  "code": "qtC16",
+  "decoder": "SOGRAND+XZ+ladder [Rapp et al. + ours]",
+  "p": 0.09
+ },
+ {
+  "fails": 51,
+  "shots": 9200,
+  "ms_per_shot": 17.9756031579352,
+  "code": "qtC16",
+  "decoder": "SOGRAND+XZ+ladder [Rapp et al. + ours]",
+  "p": 0.1
+ },
+ {
+  "fails": 58,
+  "shots": 2400,
+  "ms_per_shot": 40.57603705374769,
+  "code": "qtC16",
+  "decoder": "SOGRAND+XZ+ladder [Rapp et al. + ours]",
+  "p": 0.11
  }
 ]

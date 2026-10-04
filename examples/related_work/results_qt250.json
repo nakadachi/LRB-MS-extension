@@ -318,5 +318,37 @@
   "code": "qt250",
   "decoder": "MBP4+LRB-MS-8+ladder (ours)",
   "p": 0.0906
+ },
+ {
+  "fails": 0,
+  "shots": 100000,
+  "ms_per_shot": 0.6605646889303602,
+  "code": "qt250",
+  "decoder": "SOGRAND+XZ+ladder [Rapp et al. + ours]",
+  "p": 0.0392
+ },
+ {
+  "fails": 3,
+  "shots": 100000,
+  "ms_per_shot": 0.895848832129816,
+  "code": "qt250",
+  "decoder": "SOGRAND+XZ+ladder [Rapp et al. + ours]",
+  "p": 0.0518
+ },
+ {
+  "fails": 50,
+  "shots": 95200,
+  "ms_per_shot": 1.6214961430563575,
+  "code": "qt250",
+  "decoder": "SOGRAND+XZ+ladder [Rapp et al. + ours]",
+  "p": 0.0685
+ },
+ {
+  "fails": 50,
+  "shots": 4400,
+  "ms_per_shot": 5.494339949091434,
+  "code": "qt250",
+  "decoder": "SOGRAND+XZ+ladder [Rapp et al. + ours]",
+  "p": 0.0906
  }
 ]
