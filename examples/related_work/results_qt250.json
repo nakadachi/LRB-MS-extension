@@ -1,0 +1,290 @@
+[
+ {
+  "fails": 50,
+  "shots": 16400,
+  "ms_per_shot": 0.14641551560851818,
+  "code": "qt250",
+  "decoder": "BP+OSD-CS7",
+  "p": 0.0392
+ },
+ {
+  "fails": 50,
+  "shots": 55600,
+  "ms_per_shot": 1.138045088435331,
+  "code": "qt250",
+  "decoder": "MBP4+OSD-1",
+  "p": 0.0392
+ },
+ {
+  "fails": 0,
+  "shots": 100000,
+  "ms_per_shot": 1.1518042945992966,
+  "code": "qt250",
+  "decoder": "GMBP4+OSD-1 [Mostad et al.]",
+  "p": 0.0392
+ },
+ {
+  "fails": 50,
+  "shots": 17600,
+  "ms_per_shot": 0.6526339721029278,
+  "code": "qt250",
+  "decoder": "SOGRAND [Rapp et al.]",
+  "p": 0.0392
+ },
+ {
+  "fails": 9,
+  "shots": 100000,
+  "ms_per_shot": 0.6672544911592332,
+  "code": "qt250",
+  "decoder": "SOGRAND+XZ [Rapp et al.]",
+  "p": 0.0392
+ },
+ {
+  "fails": 56,
+  "shots": 1600,
+  "ms_per_shot": 2.2973513099995557,
+  "code": "qt250",
+  "decoder": "LEAD [Xiao et al.]",
+  "p": 0.0392
+ },
+ {
+  "fails": 3,
+  "shots": 100000,
+  "ms_per_shot": 0.32258006896983715,
+  "code": "qt250",
+  "decoder": "MBP4+LRB-MS-8 (ours)",
+  "p": 0.0392
+ },
+ {
+  "fails": 29,
+  "shots": 100000,
+  "ms_per_shot": 0.6816089997490691,
+  "code": "qt250",
+  "decoder": "MBP4+MAP, 100 it. (exact GC)",
+  "p": 0.0392
+ },
+ {
+  "fails": 54,
+  "shots": 2800,
+  "ms_per_shot": 0.37097180964630233,
+  "code": "qt250",
+  "decoder": "BP+OSD-CS7",
+  "p": 0.0518
+ },
+ {
+  "fails": 50,
+  "shots": 19200,
+  "ms_per_shot": 1.5998100904696837,
+  "code": "qt250",
+  "decoder": "MBP4+OSD-1",
+  "p": 0.0518
+ },
+ {
+  "fails": 0,
+  "shots": 100000,
+  "ms_per_shot": 1.5835852867094535,
+  "code": "qt250",
+  "decoder": "GMBP4+OSD-1 [Mostad et al.]",
+  "p": 0.0518
+ },
+ {
+  "fails": 52,
+  "shots": 5200,
+  "ms_per_shot": 1.028269228078828,
+  "code": "qt250",
+  "decoder": "SOGRAND [Rapp et al.]",
+  "p": 0.0518
+ },
+ {
+  "fails": 50,
+  "shots": 45600,
+  "ms_per_shot": 0.9011708958330713,
+  "code": "qt250",
+  "decoder": "SOGRAND+XZ [Rapp et al.]",
+  "p": 0.0518
+ },
+ {
+  "fails": 84,
+  "shots": 800,
+  "ms_per_shot": 4.7192221612556295,
+  "code": "qt250",
+  "decoder": "LEAD [Xiao et al.]",
+  "p": 0.0518
+ },
+ {
+  "fails": 16,
+  "shots": 100000,
+  "ms_per_shot": 0.36848027031009223,
+  "code": "qt250",
+  "decoder": "MBP4+LRB-MS-8 (ours)",
+  "p": 0.0518
+ },
+ {
+  "fails": 37,
+  "shots": 100000,
+  "ms_per_shot": 0.7822459572784101,
+  "code": "qt250",
+  "decoder": "MBP4+MAP, 100 it. (exact GC)",
+  "p": 0.0518
+ },
+ {
+  "fails": 73,
+  "shots": 800,
+  "ms_per_shot": 0.5810631425049451,
+  "code": "qt250",
+  "decoder": "BP+OSD-CS7",
+  "p": 0.0685
+ },
+ {
+  "fails": 58,
+  "shots": 3200,
+  "ms_per_shot": 2.1573808871862354,
+  "code": "qt250",
+  "decoder": "MBP4+OSD-1",
+  "p": 0.0685
+ },
+ {
+  "fails": 23,
+  "shots": 100000,
+  "ms_per_shot": 2.43295456036984,
+  "code": "qt250",
+  "decoder": "GMBP4+OSD-1 [Mostad et al.]",
+  "p": 0.0685
+ },
+ {
+  "fails": 59,
+  "shots": 2000,
+  "ms_per_shot": 1.7372916359984174,
+  "code": "qt250",
+  "decoder": "SOGRAND [Rapp et al.]",
+  "p": 0.0685
+ },
+ {
+  "fails": 51,
+  "shots": 7200,
+  "ms_per_shot": 1.4363430333296239,
+  "code": "qt250",
+  "decoder": "SOGRAND+XZ [Rapp et al.]",
+  "p": 0.0685
+ },
+ {
+  "fails": 111,
+  "shots": 400,
+  "ms_per_shot": 5.8754859650048274,
+  "code": "qt250",
+  "decoder": "LEAD [Xiao et al.]",
+  "p": 0.0685
+ },
+ {
+  "fails": 50,
+  "shots": 52800,
+  "ms_per_shot": 0.5082009150196874,
+  "code": "qt250",
+  "decoder": "MBP4+LRB-MS-8 (ours)",
+  "p": 0.0685
+ },
+ {
+  "fails": 50,
+  "shots": 32800,
+  "ms_per_shot": 1.11021216039721,
+  "code": "qt250",
+  "decoder": "MBP4+MAP, 100 it. (exact GC)",
+  "p": 0.0685
+ },
+ {
+  "fails": 130,
+  "shots": 400,
+  "ms_per_shot": 1.3834100575047614,
+  "code": "qt250",
+  "decoder": "BP+OSD-CS7",
+  "p": 0.0906
+ },
+ {
+  "fails": 93,
+  "shots": 800,
+  "ms_per_shot": 3.214183411242857,
+  "code": "qt250",
+  "decoder": "MBP4+OSD-1",
+  "p": 0.0906
+ },
+ {
+  "fails": 50,
+  "shots": 4800,
+  "ms_per_shot": 3.571853405625234,
+  "code": "qt250",
+  "decoder": "GMBP4+OSD-1 [Mostad et al.]",
+  "p": 0.0906
+ },
+ {
+  "fails": 108,
+  "shots": 800,
+  "ms_per_shot": 5.328718531241634,
+  "code": "qt250",
+  "decoder": "SOGRAND [Rapp et al.]",
+  "p": 0.0906
+ },
+ {
+  "fails": 55,
+  "shots": 1600,
+  "ms_per_shot": 4.215593831877129,
+  "code": "qt250",
+  "decoder": "SOGRAND+XZ [Rapp et al.]",
+  "p": 0.0906
+ },
+ {
+  "fails": 257,
+  "shots": 400,
+  "ms_per_shot": 6.706083087493653,
+  "code": "qt250",
+  "decoder": "LEAD [Xiao et al.]",
+  "p": 0.0906
+ },
+ {
+  "fails": 53,
+  "shots": 3600,
+  "ms_per_shot": 1.112994819442166,
+  "code": "qt250",
+  "decoder": "MBP4+LRB-MS-8 (ours)",
+  "p": 0.0906
+ },
+ {
+  "fails": 50,
+  "shots": 2800,
+  "ms_per_shot": 2.0060426449997846,
+  "code": "qt250",
+  "decoder": "MBP4+MAP, 100 it. (exact GC)",
+  "p": 0.0906
+ },
+ {
+  "fails": 50,
+  "shots": 8800,
+  "ms_per_shot": 1.5224667048873513,
+  "code": "qt250",
+  "decoder": "LEAD \u03b1=0.01 [Xiao et al.]",
+  "p": 0.0392
+ },
+ {
+  "fails": 54,
+  "shots": 2000,
+  "ms_per_shot": 1.9631231425014448,
+  "code": "qt250",
+  "decoder": "LEAD \u03b1=0.01 [Xiao et al.]",
+  "p": 0.0518
+ },
+ {
+  "fails": 99,
+  "shots": 800,
+  "ms_per_shot": 2.818942464984957,
+  "code": "qt250",
+  "decoder": "LEAD \u03b1=0.01 [Xiao et al.]",
+  "p": 0.0685
+ },
+ {
+  "fails": 169,
+  "shots": 400,
+  "ms_per_shot": 4.579233725009999,
+  "code": "qt250",
+  "decoder": "LEAD \u03b1=0.01 [Xiao et al.]",
+  "p": 0.0906
+ }
+]

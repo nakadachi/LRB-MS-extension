@@ -13,6 +13,8 @@ Three decoders are included:
 | `LrbmsEnsembleDecoder` | LRB-MS over several check groupings, keeps the lightest valid output | codes without local structure (bivariate bicycle) |
 | `MbpLrbmsDecoder` | MBP4 (quaternary memory BP) variable nodes with LRB-MS checks | depolarizing noise, (μ, α) relay retries |
 
+The check-update rule is selectable (`gc_method`): LRB-MS, exact max-log, exact MAP (Mostad et al.)
+or SOGRAND (Rapp et al.). `GmbpDecoder` and `LeadDecoder` reproduce two further related decoders.
 The C++ core is in `src_cpp/` and the Python bindings in `ldpc.lrbms_decoder`.
 
 ## Highlights
@@ -39,6 +41,31 @@ noise, but at p = 0.07 LRB-MS-8 fails 1e-4 against 4.5e-2 for BP+LSD-CS7, and is
 Mean decode time per shot, one core. BP+OSD-CS7 was run only where a shot took under about a
 minute. On the smaller Tanner codes (n = 576–2160, [6,3,3] local codes), LRB-MS-8 gives
 20–200× fewer logical errors than BP+OSD-CS7 at the same or lower cost.
+
+### Against other generalized-check decoders: the gap widens as local codes grow
+
+![LRB-MS vs exact-MAP, SOGRAND and LEAD generalized-check decoders](docs/figures/related_work.png)
+
+Three recent papers also decode each vertex's local code as one check. Their decoders were
+implemented here and validated against the papers' numbers:
+- exact MAP checks with OSD-1 (GMBP4, Mostad et al.);
+- soft-output GRAND lists (SOGRAND, Rapp et al.);
+- local BP-LSD feeding a global BP-OSD (LEAD, Xiao et al.).
+
+They ran on the same depolarizing errors as MBP4 + LRB-MS:
+
+| code (checks per vertex), p | **MBP4+LRB-MS (ours)** | GMBP4+OSD-1 [Mostad] | SOGRAND+XZ [Rapp] | LEAD α=0.01 [Xiao] |
+|---|---|---|---|---|
+| [[432,16,28]] (12), 0.08 | **1.6e-4, 1.1 ms** | 4.2e-4, 71 ms | 6.0e-3, 27 ms | 0.58, 32 ms |
+| [[576,32,≤16]] C16 (9), 0.09 | **3.9e-4, 1.4 ms** | 9.5e-4, 20 ms | 4.7e-2, 10 ms | 0.47, 26 ms |
+| [[250,10,15]] (6), 0.0685 | 9.5e-4, **0.51 ms** | **2.3e-4**, 2.4 ms | 7.1e-3, 1.4 ms | 0.12, 2.8 ms |
+
+Logical error rate and mean decode time per shot, one core.
+- **More checks per vertex:** the exact MAP check and SOGRAND get exponentially more expensive,
+  while LRB-MS barely changes. On [[432,16]] LRB-MS is 47–67× faster than GMBP4 and also has
+  2.6–6× fewer failures.
+- **Small local codes:** on [[250,10,15]] (64-state trellis), GMBP4 is the most accurate, at
+  3–5× our time.
 
 ### BB codes: the grouping ensemble beats BP+OSD, and the gap grows with code size
 
@@ -89,6 +116,7 @@ keeping the lightest output of 3 tuned (μ, α) legs gives ×2.0 for about 3× t
 | [Quantum Tanner codes](docs/benchmarks/quantum_tanner.md) | n = 576–10 752, full error-rate and timing tables, LRB order, exact trellis, OSD fallback |
 | [Bivariate bicycle codes](docs/benchmarks/bb_codes.md) | [[72]] to [[756]], single LRB-MS vs ensembles, minimum-weight headroom estimate |
 | [Circuit-level noise](docs/benchmarks/circuit_level.md) | BB [[144,12,12]] memory experiment, detector groupings |
+| [Related decoders](docs/benchmarks/related_work.md) | exact-MAP GMBP4, SOGRAND and LEAD reimplemented, validated against their papers and compared with LRB-MS |
 | [Relay ladders](docs/benchmarks/relay_ladders.md) | (μ, α) sweeps, ladder search, lightest-of-k, verification of reported ladders |
 
 ## Installation

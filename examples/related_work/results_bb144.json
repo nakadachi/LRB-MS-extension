@@ -1,0 +1,98 @@
+[
+ {
+  "fails": 50,
+  "shots": 16000,
+  "ms_per_shot": 0.04240855474546379,
+  "code": "bb144",
+  "decoder": "BP+OSD-CS7",
+  "p": 0.04
+ },
+ {
+  "fails": 9,
+  "shots": 100000,
+  "ms_per_shot": 0.2962381251104489,
+  "code": "bb144",
+  "decoder": "MBP4+OSD-1",
+  "p": 0.04
+ },
+ {
+  "fails": 11,
+  "shots": 100000,
+  "ms_per_shot": 0.29578080936956214,
+  "code": "bb144",
+  "decoder": "GMBP4+OSD-1 [Mostad et al.]",
+  "p": 0.04
+ },
+ {
+  "fails": 10,
+  "shots": 100000,
+  "ms_per_shot": 0.14924566650112867,
+  "code": "bb144",
+  "decoder": "MBP4+LRB-MS-6 (ours)",
+  "p": 0.04
+ },
+ {
+  "fails": 53,
+  "shots": 4800,
+  "ms_per_shot": 0.06245532166985868,
+  "code": "bb144",
+  "decoder": "BP+OSD-CS7",
+  "p": 0.05
+ },
+ {
+  "fails": 50,
+  "shots": 83200,
+  "ms_per_shot": 0.3317870342055493,
+  "code": "bb144",
+  "decoder": "MBP4+OSD-1",
+  "p": 0.05
+ },
+ {
+  "fails": 41,
+  "shots": 100000,
+  "ms_per_shot": 0.40886085351949075,
+  "code": "bb144",
+  "decoder": "GMBP4+OSD-1 [Mostad et al.]",
+  "p": 0.05
+ },
+ {
+  "fails": 37,
+  "shots": 100000,
+  "ms_per_shot": 0.1835027165093561,
+  "code": "bb144",
+  "decoder": "MBP4+LRB-MS-6 (ours)",
+  "p": 0.05
+ },
+ {
+  "fails": 57,
+  "shots": 2800,
+  "ms_per_shot": 0.07880930357194822,
+  "code": "bb144",
+  "decoder": "BP+OSD-CS7",
+  "p": 0.06
+ },
+ {
+  "fails": 52,
+  "shots": 18800,
+  "ms_per_shot": 0.4095677810649714,
+  "code": "bb144",
+  "decoder": "MBP4+OSD-1",
+  "p": 0.06
+ },
+ {
+  "fails": 50,
+  "shots": 21600,
+  "ms_per_shot": 0.5483435277762039,
+  "code": "bb144",
+  "decoder": "GMBP4+OSD-1 [Mostad et al.]",
+  "p": 0.06
+ },
+ {
+  "fails": 51,
+  "shots": 34400,
+  "ms_per_shot": 0.2764675274960514,
+  "code": "bb144",
+  "decoder": "MBP4+LRB-MS-6 (ours)",
+  "p": 0.06
+ }
+]

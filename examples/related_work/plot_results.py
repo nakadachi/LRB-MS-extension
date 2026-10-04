@@ -81,11 +81,24 @@ def plot():
             shots = np.array([r["shots"] for _, r in points])
             zero = fails == 0
             (line,) = ax.plot(
-                ps[~zero], fails[~zero] / shots[~zero], style, color=color, marker=marker,
-                ms=5, lw=2, label=decoder,
+                ps[~zero],
+                fails[~zero] / shots[~zero],
+                style,
+                color=color,
+                marker=marker,
+                ms=5,
+                lw=2,
+                label=decoder,
             )
-            ax.plot(ps[zero], [wilson_upper(0, s) for s in shots[zero]], "v", color=color,
-                    ms=6, mfc="none", mew=1.4)
+            ax.plot(
+                ps[zero],
+                [wilson_upper(0, s) for s in shots[zero]],
+                "v",
+                color=color,
+                ms=6,
+                mfc="none",
+                mew=1.4,
+            )
             handles.setdefault(decoder, line)
         ax.set_facecolor(SURFACE)
         ax.grid(True, color=GRID, linewidth=0.6)
@@ -95,11 +108,25 @@ def plot():
         ax.set_title(title, fontsize=9.5, color=INK)
         ax.set_xlabel("depolarizing error rate p")
     axes[0].set_ylabel("logical error rate per shot")
-    fig.legend(handles.values(), handles.keys(), loc="lower center", ncol=4, frameon=False,
-               bbox_to_anchor=(0.5, 1.0))
+    fig.legend(
+        handles.values(),
+        handles.keys(),
+        loc="lower center",
+        ncol=4,
+        frameon=False,
+        bbox_to_anchor=(0.5, 1.0),
+        handlelength=3.2,
+    )
     fig.tight_layout()
-    fig.text(0.5, -0.02, "Same depolarizing errors for every decoder. Open triangles: no "
-             "failures, 95% upper bound.", ha="center", va="top", color=INK2, fontsize=8)
+    fig.text(
+        0.5,
+        -0.02,
+        "Same depolarizing errors for every decoder. Open triangles: no failures, 95% upper bound.",
+        ha="center",
+        va="top",
+        color=INK2,
+        fontsize=8,
+    )
     fig.savefig(FIGURE, dpi=150, facecolor=SURFACE, bbox_inches="tight")
 
 
