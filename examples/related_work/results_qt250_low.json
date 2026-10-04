@@ -1,0 +1,82 @@
+[
+ {
+  "fails": 39,
+  "shots": 1000000,
+  "ms_per_shot": 0.2473347659850219,
+  "code": "qt250",
+  "decoder": "MBP4+LRB-MS-8 (ours)",
+  "p": 0.0296
+ },
+ {
+  "fails": 26,
+  "shots": 1000000,
+  "ms_per_shot": 0.3071356771829601,
+  "code": "qt250",
+  "decoder": "MBP4+LRB-MS-12 (ours)",
+  "p": 0.0296
+ },
+ {
+  "fails": 1,
+  "shots": 1000000,
+  "ms_per_shot": 0.3087471347166434,
+  "code": "qt250",
+  "decoder": "MBP4+LRB-MS-12+ladder (ours)",
+  "p": 0.0296
+ },
+ {
+  "fails": 17,
+  "shots": 1000000,
+  "ms_per_shot": 0.5089138582721757,
+  "code": "qt250",
+  "decoder": "SOGRAND+XZ [Rapp et al.]",
+  "p": 0.0296
+ },
+ {
+  "fails": 30,
+  "shots": 2000000,
+  "ms_per_shot": 0.20908318556991254,
+  "code": "qt250",
+  "decoder": "MBP4+LRB-MS-8 (ours)",
+  "p": 0.0224
+ },
+ {
+  "fails": 10,
+  "shots": 2000000,
+  "ms_per_shot": 0.2561246669437819,
+  "code": "qt250",
+  "decoder": "MBP4+LRB-MS-12 (ours)",
+  "p": 0.0224
+ },
+ {
+  "fails": 0,
+  "shots": 2000000,
+  "ms_per_shot": 0.2519708182966988,
+  "code": "qt250",
+  "decoder": "MBP4+LRB-MS-12+ladder (ours)",
+  "p": 0.0224
+ },
+ {
+  "fails": 10,
+  "shots": 2000000,
+  "ms_per_shot": 0.42157437431920103,
+  "code": "qt250",
+  "decoder": "SOGRAND+XZ [Rapp et al.]",
+  "p": 0.0224
+ },
+ {
+  "fails": 26,
+  "shots": 4000000,
+  "ms_per_shot": 0.18380753236083158,
+  "code": "qt250",
+  "decoder": "MBP4+LRB-MS-8 (ours)",
+  "p": 0.0169
+ },
+ {
+  "fails": 19,
+  "shots": 4000000,
+  "ms_per_shot": 0.28912823523249176,
+  "code": "qt250",
+  "decoder": "MBP4+LRB-MS-12 (ours)",
+  "p": 0.0169
+ }
+]
