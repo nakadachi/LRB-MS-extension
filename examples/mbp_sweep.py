@@ -2,47 +2,72 @@
 
 Usage: python mbp_sweep.py bb144 0.06 20000 [ell]
 """
+
 import multiprocessing as mp
 import sys
 
 import numpy as np
 
-import mbp_ladder as M
 from ldpc.lrbms_decoder import MbpLrbmsDecoder, overlap_check_groups
 
+import mbp_ladder
+
+WORKERS = 4
 MUS = (0.5, 0.6, 0.7, 0.75, 0.8, 0.9, 1.0)
 ALPHAS = (0.7, 0.8, 0.9, 1.0, 1.1, 1.25)
 
 
-def chunk(args):
+def sweep_chunk(args):
+    """Per grid point (mu-major order): [failures, wrong convergences]."""
     name, p, shots, seed, ell = args
-    hx, hz, lx, lz, xg, zg, it, order = M.code(name)
+    hx, hz, lx, lz, x_groups, z_groups, max_iter, lrbms_order = mbp_ladder.code(name)
     if ell:
-        xg, zg = overlap_check_groups(hx, ell), overlap_check_groups(hz, ell)
-    dec = MbpLrbmsDecoder(hx, hz, error_rate=p, x_groups=xg, z_groups=zg, max_iter=it, mu=0.75,
-                          alpha=1.0, lrbms_order=order, schedule="serial")
+        x_groups = overlap_check_groups(hx, ell)
+        z_groups = overlap_check_groups(hz, ell)
+    decoder = MbpLrbmsDecoder(
+        hx,
+        hz,
+        error_rate=p,
+        x_groups=x_groups,
+        z_groups=z_groups,
+        max_iter=max_iter,
+        mu=0.75,
+        alpha=1.0,
+        lrbms_order=lrbms_order,
+        schedule="serial",
+    )
     rng = np.random.default_rng(seed)
-    grid = [(m, a) for m in MUS for a in ALPHAS]
-    fails = np.zeros((len(grid), 2), dtype=int)   # [failures, wrong convergences]
+    grid = [(mu, alpha) for mu in MUS for alpha in ALPHAS]
+    counts = np.zeros((len(grid), 2), dtype=int)
     for _ in range(shots):
-        ex, ez = M.sample(rng, hx.shape[1], p)
-        sx, sz = hx @ ez % 2, hz @ ex % 2
-        for g, (mu, a) in enumerate(grid):
-            dec.mu, dec.alpha = mu, a
-            o = M.outcome(dec, hx, hz, lx, lz, ex, ez, sx, sz)
-            fails[g, 0] += o != "ok"
-            fails[g, 1] += o == "wrong"
-    return fails
+        error_x, error_z = mbp_ladder.sample(rng, hx.shape[1], p)
+        syndrome_x, syndrome_z = hx @ error_z % 2, hz @ error_x % 2
+        for g, (mu, alpha) in enumerate(grid):
+            decoder.mu, decoder.alpha = mu, alpha
+            result = mbp_ladder.outcome(
+                decoder, hx, hz, lx, lz, error_x, error_z, syndrome_x, syndrome_z
+            )
+            counts[g, 0] += result != "ok"
+            counts[g, 1] += result == "wrong"
+    return counts
+
+
+def main():
+    name, p, shots = sys.argv[1], float(sys.argv[2]), int(sys.argv[3])
+    ell = int(sys.argv[4]) if len(sys.argv) > 4 else 0
+    with mp.Pool(WORKERS) as pool:
+        chunks = [(name, p, shots // WORKERS, 4242 + k, ell) for k in range(WORKERS)]
+        counts = sum(pool.map(sweep_chunk, chunks))
+    total_shots = (shots // WORKERS) * WORKERS
+    print(
+        f"{name} p={p} ell={ell or 'default'}: {total_shots} shots. failures (wrong convergences)"
+    )
+    print("  mu \\ alpha " + "".join(f"{alpha:>12}" for alpha in ALPHAS))
+    for i, mu in enumerate(MUS):
+        row = counts[i * len(ALPHAS) : (i + 1) * len(ALPHAS)]
+        cells = "".join(f"{fails:>7} ({wrong:>3})" for fails, wrong in row)
+        print(f"  {mu:<10}" + cells, flush=True)
 
 
 if __name__ == "__main__":
-    name, p, shots = sys.argv[1], float(sys.argv[2]), int(sys.argv[3])
-    ell = int(sys.argv[4]) if len(sys.argv) > 4 else 0
-    with mp.Pool(4) as pool:
-        tot = sum(pool.map(chunk, [(name, p, shots // 4, 4242 + k, ell) for k in range(4)]))
-    n = (shots // 4) * 4
-    print(f"{name} p={p} ell={ell or 'default'}: {n} shots. failures (wrong convergences)")
-    print("  mu \\ alpha " + "".join(f"{a:>12}" for a in ALPHAS))
-    for i, mu in enumerate(MUS):
-        row = tot[i * len(ALPHAS):(i + 1) * len(ALPHAS)]
-        print(f"  {mu:<10}" + "".join(f"{f:>7} ({w:>3})" for f, w in row), flush=True)
+    main()

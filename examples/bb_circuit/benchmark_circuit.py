@@ -21,93 +21,141 @@ from ldpc.lrbms_decoder import LrbmsEnsembleDecoder
 
 from circuit_setup import CircuitProblem
 
-_PROBLEMS = {}
+_problem_cache = {}
 
 
 def problem(code, p, rounds):
     key = (code, p, rounds)
-    if key not in _PROBLEMS:
-        _PROBLEMS[key] = CircuitProblem(code, p, rounds)
-    return _PROBLEMS[key]
+    if key not in _problem_cache:
+        _problem_cache[key] = CircuitProblem(code, p, rounds)
+    return _problem_cache[key]
 
 
-def make_decoder(spec, P):
-    H, ch = P.H, P.priors
+def make_decoder(spec, circuit_problem):
+    check_matrix = circuit_problem.check_matrix
     kind = spec["kind"]
-    common = dict(error_channel=ch.tolist(), max_iter=spec.get("max_iter", 100))
+    common = dict(error_channel=circuit_problem.priors.tolist(), max_iter=spec.get("max_iter", 100))
     if kind == "bp":
-        return BpDecoder(H, bp_method=spec.get("bp_method", "minimum_sum"), ms_scaling_factor=spec.get("msf", 0.75),
-                         schedule=spec.get("schedule", "serial"), **common)
+        return BpDecoder(
+            check_matrix,
+            bp_method=spec.get("bp_method", "minimum_sum"),
+            ms_scaling_factor=spec.get("msf", 0.75),
+            schedule=spec.get("schedule", "serial"),
+            **common,
+        )
     if kind == "bposd":
-        return BpOsdDecoder(H, bp_method=spec.get("bp_method", "minimum_sum"), ms_scaling_factor=spec.get("msf", 0.75),
-                            schedule=spec.get("schedule", "serial"), osd_method=spec.get("osd_method", "osd_cs"),
-                            osd_order=spec.get("osd_order", 7), **common)
-    lrb = dict(ms_scaling_factor=spec.get("msf", 0.75), lrbms_order=spec.get("t", 0),
-               schedule=spec.get("schedule", "serial"), osd_method=spec.get("osd_method", "off"),
-               osd_order=spec.get("osd_order", 0))
+        return BpOsdDecoder(
+            check_matrix,
+            bp_method=spec.get("bp_method", "minimum_sum"),
+            ms_scaling_factor=spec.get("msf", 0.75),
+            schedule=spec.get("schedule", "serial"),
+            osd_method=spec.get("osd_method", "osd_cs"),
+            osd_order=spec.get("osd_order", 7),
+            **common,
+        )
+    lrbms_settings = dict(
+        ms_scaling_factor=spec.get("msf", 0.75),
+        lrbms_order=spec.get("t", 0),
+        schedule=spec.get("schedule", "serial"),
+        osd_method=spec.get("osd_method", "off"),
+        osd_order=spec.get("osd_order", 0),
+    )
     if kind == "lrbms":
-        return LrbmsDecoder(H, check_groups=P.resolve(spec.get("groups")), **lrb, **common)
+        return LrbmsDecoder(
+            check_matrix,
+            check_groups=circuit_problem.resolve(spec.get("groups")),
+            **lrbms_settings,
+            **common,
+        )
     if kind == "ensemble":
-        groupings = [P.resolve(g) for g in spec["groupings"]]
-        return LrbmsEnsembleDecoder(H, groupings=groupings, stop=spec.get("stop", "all"),
-                                    osd_members=spec.get("osd_members", "all"), **lrb, **common)
+        groupings = [circuit_problem.resolve(grouping) for grouping in spec["groupings"]]
+        return LrbmsEnsembleDecoder(
+            check_matrix,
+            groupings=groupings,
+            stop=spec.get("stop", "all"),
+            osd_members=spec.get("osd_members", "all"),
+            **lrbms_settings,
+            **common,
+        )
     raise ValueError(kind)
 
 
 def run_chunk(args):
+    """Returns (failures, shots, seconds) for one chunk of stim samples."""
     code, p, rounds, spec, shots, seed = args
-    P = problem(code, p, rounds)
-    dec = make_decoder(spec, P)
-    dets, obs = P.circuit.compile_detector_sampler(seed=seed).sample(shots, separate_observables=True)
+    circuit_problem = problem(code, p, rounds)
+    decoder = make_decoder(spec, circuit_problem)
+    sampler = circuit_problem.circuit.compile_detector_sampler(seed=seed)
+    detectors, observables = sampler.sample(shots, separate_observables=True)
     fails = 0
-    t0 = time.perf_counter()
-    for i in range(shots):
-        e = dec.decode(dets[i].astype(np.uint8))
-        fails += bool(((P.O @ e) % 2 != obs[i]).any())
-    return fails, shots, time.perf_counter() - t0
+    start = time.perf_counter()
+    for shot in range(shots):
+        error = decoder.decode(detectors[shot].astype(np.uint8))
+        predicted = (circuit_problem.observables @ error) % 2
+        fails += bool((predicted != observables[shot]).any())
+    return fails, shots, time.perf_counter() - start
 
 
 def simulate(pool, code, p, rounds, spec, max_shots, max_fails, chunk, seed):
     fails = shots = 0
-    secs, k = 0.0, 0
-    w = pool._processes
+    seconds, chunk_index = 0.0, 0
+    workers = pool._processes
     while shots < max_shots and fails < max_fails:
-        for f, n, t in pool.map(run_chunk, [(code, p, rounds, spec, chunk, seed * 1_000_003 + k + i)
-                                           for i in range(w)]):
-            fails, shots, secs = fails + f, shots + n, secs + t
-        k += w
-    return dict(fails=fails, shots=shots, us_per_shot=1e6 * secs / shots)
+        batch = [
+            (code, p, rounds, spec, chunk, seed * 1_000_003 + chunk_index + i)
+            for i in range(workers)
+        ]
+        for chunk_fails, chunk_shots, chunk_seconds in pool.map(run_chunk, batch):
+            fails += chunk_fails
+            shots += chunk_shots
+            seconds += chunk_seconds
+        chunk_index += workers
+    return dict(fails=fails, shots=shots, us_per_shot=1e6 * seconds / shots)
 
 
 def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--code", default="[[144,12,12]]")
-    ap.add_argument("--rounds", type=int, default=12)
-    ap.add_argument("--ps", default="0.001,0.002,0.003,0.004")
-    ap.add_argument("--decoders", default="decoders.json")
-    ap.add_argument("--out", default="results.json")
-    ap.add_argument("--max-shots", type=int, default=10000)
-    ap.add_argument("--max-fails", type=int, default=100)
-    ap.add_argument("--chunk", type=int, default=50)
-    ap.add_argument("--workers", type=int, default=os.cpu_count())
-    args = ap.parse_args()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--code", default="[[144,12,12]]")
+    parser.add_argument("--rounds", type=int, default=12)
+    parser.add_argument("--ps", default="0.001,0.002,0.003,0.004")
+    parser.add_argument("--decoders", default="decoders.json")
+    parser.add_argument("--out", default="results.json")
+    parser.add_argument("--max-shots", type=int, default=10000)
+    parser.add_argument("--max-fails", type=int, default=100)
+    parser.add_argument("--chunk", type=int, default=50)
+    parser.add_argument("--workers", type=int, default=os.cpu_count())
+    args = parser.parse_args()
     decoders = json.load(open(args.decoders))
     results = json.load(open(args.out)) if os.path.exists(args.out) else []
     label = f"{args.code} x{args.rounds} rounds"
     done = {(r["code"], r["decoder"], r["p"]) for r in results}
     with mp.Pool(args.workers) as pool:
-        for p in [float(x) for x in args.ps.split(",")]:
+        for p in [float(value) for value in args.ps.split(",")]:
             for spec in decoders:
                 if (label, spec["name"], p) in done:
                     continue
                 # same stim seeds for every decoder at a given p: paired samples
                 seed = zlib.crc32(f"{label}|{p}".encode())
-                res = simulate(pool, args.code, p, args.rounds, spec, spec.get("max_shots", args.max_shots),
-                               spec.get("max_fails", args.max_fails), args.chunk, seed)
-                res.update(code=label, decoder=spec["name"], p=p)
-                results.append(res)
-                print(f"{label} p={p:<6} {spec['name']:>34}: LER={res['fails'] / res['shots']:.2e} "
-                      f"({res['fails']}/{res['shots']}) {res['us_per_shot'] / 1000:.1f} ms/shot", flush=True)
+                result = simulate(
+                    pool,
+                    args.code,
+                    p,
+                    args.rounds,
+                    spec,
+                    spec.get("max_shots", args.max_shots),
+                    spec.get("max_fails", args.max_fails),
+                    args.chunk,
+                    seed,
+                )
+                result.update(code=label, decoder=spec["name"], p=p)
+                results.append(result)
+                print(
+                    f"{label} p={p:<6} {spec['name']:>34}: "
+                    f"LER={result['fails'] / result['shots']:.2e} "
+                    f"({result['fails']}/{result['shots']}) "
+                    f"{result['us_per_shot'] / 1000:.1f} ms/shot",
+                    flush=True,
+                )
                 json.dump(results, open(args.out, "w"), indent=1)
 
 

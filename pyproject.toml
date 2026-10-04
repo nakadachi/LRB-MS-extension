@@ -33,3 +33,21 @@ Documentation = "https://software.roffe.eu/ldpc"
 [tool.setuptools.packages.find]
 where = ["src_python"]  
 include = ["ldpc","ldpc.*"]
+
+# Formatting and lint rules for the Python code added by the LRB-MS extension
+# (run: ruff format <files> && ruff check <files>).
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N"]
+# Single-letter capitals (A, B, H_A, H_B) follow the papers' notation.
+ignore = ["N802", "N803", "N806", "N816", "E741"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["ldpc"]
+# helper modules imported by the example scripts
+known-local-folder = [
+    "bb_codes", "benchmark", "circuit_setup", "distance", "harness", "mbp_ladder",
+    "qtanner_codes", "search_432", "search_codes", "search_large",
+]

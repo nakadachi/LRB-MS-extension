@@ -11,17 +11,20 @@ import ldpc.mod2
 
 
 def _shift(size, power):
+    """Cyclic shift matrix S_size^power."""
     return np.roll(np.eye(size, dtype=np.uint8), power, axis=1)
 
 
 def _poly(l, m, terms):
-    """Sum of monomials; each term is ('x', a) or ('y', b)."""
-    out = np.zeros((l * m, l * m), dtype=np.uint8)
-    for var, a in terms:
-        mono = np.kron(_shift(l, a), np.eye(m, dtype=np.uint8)) if var == "x" else \
-            np.kron(np.eye(l, dtype=np.uint8), _shift(m, a))
-        out ^= mono
-    return out
+    """Sum of monomials; each term is ('x', a) for x^a or ('y', b) for y^b."""
+    total = np.zeros((l * m, l * m), dtype=np.uint8)
+    for variable, power in terms:
+        if variable == "x":
+            monomial = np.kron(_shift(l, power), np.eye(m, dtype=np.uint8))
+        else:
+            monomial = np.kron(np.eye(l, dtype=np.uint8), _shift(m, power))
+        total ^= monomial
+    return total
 
 
 # name: (l, m, A terms, B terms, published distance)
@@ -32,30 +35,43 @@ BB_CODES = {
     "[[144,12,12]]": (12, 6, [("x", 3), ("y", 1), ("y", 2)], [("y", 3), ("x", 1), ("x", 2)], 12),
     "[[288,12,18]]": (12, 12, [("x", 3), ("y", 2), ("y", 7)], [("y", 3), ("x", 1), ("x", 2)], 18),
     # distances of the two largest codes are upper bounds in the paper
-    "[[360,12,<=24]]": (30, 6, [("x", 9), ("y", 1), ("y", 2)], [("y", 3), ("x", 25), ("x", 26)], 24),
-    "[[756,16,<=34]]": (21, 18, [("x", 3), ("y", 10), ("y", 17)], [("y", 5), ("x", 3), ("x", 19)], 34),
+    "[[360,12,<=24]]": (
+        30,
+        6,
+        [("x", 9), ("y", 1), ("y", 2)],
+        [("y", 3), ("x", 25), ("x", 26)],
+        24,
+    ),
+    "[[756,16,<=34]]": (
+        21,
+        18,
+        [("x", 3), ("y", 10), ("y", 17)],
+        [("y", 5), ("x", 3), ("x", 19)],
+        34,
+    ),
 }
 
 
 def css_logicals(h_commute, h_stab):
     """Basis of ker(h_commute) modulo rowspace(h_stab)."""
-    ker = scipy.sparse.csr_matrix(ldpc.mod2.kernel(h_commute))
-    stacked = scipy.sparse.vstack([scipy.sparse.csr_matrix(h_stab), ker]).tocsr()
-    piv = np.asarray(ldpc.mod2.pivot_rows(stacked))
-    rows = [p - h_stab.shape[0] for p in piv if p >= h_stab.shape[0]]
-    return ker[rows].toarray().astype(np.uint8) % 2
+    kernel = scipy.sparse.csr_matrix(ldpc.mod2.kernel(h_commute))
+    stacked = scipy.sparse.vstack([scipy.sparse.csr_matrix(h_stab), kernel]).tocsr()
+    pivots = np.asarray(ldpc.mod2.pivot_rows(stacked))
+    stab_count = h_stab.shape[0]
+    logical_rows = [pivot - stab_count for pivot in pivots if pivot >= stab_count]
+    return kernel[logical_rows].toarray().astype(np.uint8) % 2
 
 
 class BBCode:
     def __init__(self, name):
-        l, m, a, b, d = BB_CODES[name]
-        A, B = _poly(l, m, a), _poly(l, m, b)
-        self.name, self.l, self.m, self.d = name, l, m, d
+        l, m, a_terms, b_terms, distance = BB_CODES[name]
+        A, B = _poly(l, m, a_terms), _poly(l, m, b_terms)
+        self.name, self.l, self.m, self.d = name, l, m, distance
         self.hx = scipy.sparse.csr_matrix(np.hstack([A, B]))
         self.hz = scipy.sparse.csr_matrix(np.hstack([B.T, A.T]))
         assert not ((self.hx @ self.hz.T).toarray() % 2).any()
         self.n = self.hx.shape[1]
-        self.lz = css_logicals(self.hx, self.hz)   # detects X-type residuals
+        self.lz = css_logicals(self.hx, self.hz)  # detects X-type residuals
         self.lx = css_logicals(self.hz, self.hx)
         self.k = self.lz.shape[0]
 
@@ -69,7 +85,11 @@ def coset_groups(code, step_x, size_x, step_y, size_y):
         for j0 in range(m):
             if (i0, j0) in seen:
                 continue
-            g = [((i0 + a * step_x) % l, (j0 + b * step_y) % m) for a in range(size_x) for b in range(size_y)]
-            seen.update(g)
-            groups.append(sorted(i * m + j for i, j in g))
+            coset = [
+                ((i0 + a * step_x) % l, (j0 + b * step_y) % m)
+                for a in range(size_x)
+                for b in range(size_y)
+            ]
+            seen.update(coset)
+            groups.append(sorted(i * m + j for i, j in coset))
     return groups

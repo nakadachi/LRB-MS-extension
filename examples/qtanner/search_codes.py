@@ -5,8 +5,14 @@ import sys
 import numpy as np
 from qldpc import abstract
 
-from qtanner_codes import build_qtanner, generates, group_table, random_tnc_subsets, satisfies_tnc
 from distance import distance_upper_bound
+from qtanner_codes import (
+    build_qtanner,
+    generates,
+    group_table,
+    random_tnc_subsets,
+    satisfies_tnc,
+)
 
 # [6,3,3] local code: H = [P | I] with symmetric P, so C^perp is also [6,3,3].
 P = np.array([[0, 1, 1], [1, 0, 1], [1, 1, 0]])
@@ -31,10 +37,11 @@ GROUPS = {
 
 
 def search(name, tries=40, seed=0, dist_trials=150):
+    """Random TNC subsets of size 6; returns (d, k, A, B, dX, dZ) for each valid code."""
     mul, inv, ident = group_table(GROUPS[name]())
     rng = np.random.default_rng(seed)
     found = []
-    for t in range(tries):
+    for attempt in range(tries):
         try:
             A, B = random_tnc_subsets(mul, inv, ident, 6, rng)
         except RuntimeError:
@@ -42,16 +49,18 @@ def search(name, tries=40, seed=0, dist_trials=150):
         if not (satisfies_tnc(mul, A, B) and generates(mul, A + B, ident)):
             continue
         code = build_qtanner(mul, A, B, H_A, H_B, name=name)
-        if code.lx.shape[0] == 0:
+        k = code.lx.shape[0]
+        if k == 0:
             continue
-        dx, _ = distance_upper_bound(code.hz, code.lz, trials=dist_trials, seed=t)
-        dz, _ = distance_upper_bound(code.hx, code.lx, trials=dist_trials, seed=t)
-        found.append((min(dx, dz), code.lx.shape[0], A, B, dx, dz))
-        print(f"{name} |G|={len(mul)} try={t} n={code.n} k={code.lx.shape[0]} "
-              f"dX<={dx} dZ<={dz} A={A} B={B}", flush=True)
+        dx, _ = distance_upper_bound(code.hz, code.lz, trials=dist_trials, seed=attempt)
+        dz, _ = distance_upper_bound(code.hx, code.lx, trials=dist_trials, seed=attempt)
+        found.append((min(dx, dz), k, A, B, dx, dz))
+        print(
+            f"{name} |G|={len(mul)} try={attempt} n={code.n} k={k} dX<={dx} dZ<={dz} A={A} B={B}",
+            flush=True,
+        )
     return found
 
 
 if __name__ == "__main__":
-    name, tries = sys.argv[1], int(sys.argv[2])
-    search(name, tries=tries)
+    search(sys.argv[1], tries=int(sys.argv[2]))

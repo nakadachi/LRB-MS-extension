@@ -52,30 +52,30 @@ cdef extern from "lrbms.hpp" namespace "ldpc::lrbms":
 cdef extern from "mbp_lrbms.hpp" namespace "ldpc::lrbms":
 
     cdef cppclass MbpLrbmsDecoderCpp "ldpc::lrbms::MbpLrbmsDecoder":
-        MbpLrbmsDecoderCpp(int n,
+        MbpLrbmsDecoderCpp(int qubit_count,
                            vector[vector[int]]& hx_rows,
                            vector[vector[int]]& hz_rows,
                            vector[vector[int]]& x_groups,
                            vector[vector[int]]& z_groups,
-                           vector[double]& px,
-                           vector[double]& py,
-                           vector[double]& pz,
+                           vector[double]& p_x,
+                           vector[double]& p_y,
+                           vector[double]& p_z,
                            int max_iter,
                            double mu,
                            double alpha,
-                           int order,
-                           LrbmsSchedule sched,
-                           double clip) except +
+                           int lrbms_order,
+                           LrbmsSchedule schedule,
+                           double llr_clip) except +
         int maximum_iterations
         double alpha
         LrbmsSchedule schedule
-        vector[uint8_t] ex
-        vector[uint8_t] ez
+        vector[uint8_t] error_x
+        vector[uint8_t] error_z
         int iterations
         bool converge
-        void set_channel(vector[double]& px, vector[double]& py, vector[double]& pz) except +
+        void set_channel(vector[double]& p_x, vector[double]& p_y, vector[double]& p_z) except +
         void set_mu(double mu)
-        void decode(vector[uint8_t]& sx, vector[uint8_t]& sz) except +
+        void decode(vector[uint8_t]& syndrome_x, vector[uint8_t]& syndrome_z) except +
 
 cdef class LrbmsDecoder:
     cdef LrbmsDecoderCpp* lrbmsd
@@ -92,10 +92,10 @@ cdef class LrbmsDecoder:
 
 cdef class MbpLrbmsDecoder:
     cdef MbpLrbmsDecoderCpp* dec
-    cdef int n, mx, mz
+    cdef int qubit_count, x_check_count, z_check_count
     cdef double _mu
-    cdef vector[uint8_t] _sx
-    cdef vector[uint8_t] _sz
+    cdef vector[uint8_t] _syndrome_x
+    cdef vector[uint8_t] _syndrome_z
     cdef object _x_groups
     cdef object _z_groups
     cdef bool MEMORY_ALLOCATED

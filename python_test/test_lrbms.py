@@ -244,51 +244,64 @@ def test_osd_invalid_args():
 
 # ------------------------------------------------------------- ensemble
 
+
 def test_permuted_groupings_are_distinct_partitions():
     from ldpc.lrbms_decoder import permuted_overlap_groupings
+
     H = bb_code_144()
-    gs = permuted_overlap_groupings(H, 8, 4, seed=3)
-    assert gs[0] == overlap_check_groups(H, 8)
-    for g in gs:
-        assert sorted(r for grp in g for r in grp) == list(range(H.shape[0]))
-    assert len({tuple(map(tuple, sorted(g))) for g in gs}) == 4
+    groupings = permuted_overlap_groupings(H, 8, 4, seed=3)
+    assert groupings[0] == overlap_check_groups(H, 8)
+    for grouping in groupings:
+        assert sorted(row for group in grouping for row in group) == list(range(H.shape[0]))
+    assert len({tuple(map(tuple, sorted(grouping))) for grouping in groupings}) == 4
 
 
 def test_ensemble_output_is_cheapest_valid_member():
     from ldpc.lrbms_decoder import LrbmsEnsembleDecoder
+
     H = bb_code_144()
     n = H.shape[1]
     p = 0.06
-    ens = LrbmsEnsembleDecoder(H, error_rate=p, ell=8, num_groupings=4, max_iter=50,
-                               ms_scaling_factor=0.75, schedule="serial",
-                               osd_method="osd_cs", osd_order=4)
+    ensemble = LrbmsEnsembleDecoder(
+        H,
+        error_rate=p,
+        ell=8,
+        num_groupings=4,
+        max_iter=50,
+        ms_scaling_factor=0.75,
+        schedule="serial",
+        osd_method="osd_cs",
+        osd_order=4,
+    )
     rng = np.random.default_rng(1)
     for _ in range(40):
         e = (rng.random(n) < p).astype(np.uint8)
         s = H @ e % 2
-        d = ens.decode(s)
-        assert ens.converge  # OSD fallback makes every member syndrome-valid
+        d = ensemble.decode(s)
+        assert ensemble.converge  # OSD fallback makes every member syndrome-valid
         assert np.array_equal(H @ d % 2, s)
-        weights = [m.decode(s).sum() for m in ens.members]
-        assert d.sum() == min(weights)
+        member_weights = [member.decode(s).sum() for member in ensemble.members]
+        assert d.sum() == min(member_weights)
 
 
 def test_ensemble_single_grouping_equals_lrbms():
     from ldpc.lrbms_decoder import LrbmsEnsembleDecoder
+
     H = bb_code_144()
     n = H.shape[1]
-    kw = dict(error_rate=0.05, max_iter=50, ms_scaling_factor=0.75, schedule="serial")
-    ens = LrbmsEnsembleDecoder(H, groupings=[6], **kw)
-    ref = LrbmsDecoder(H, check_groups=6, **kw)
+    settings = dict(error_rate=0.05, max_iter=50, ms_scaling_factor=0.75, schedule="serial")
+    ensemble = LrbmsEnsembleDecoder(H, groupings=[6], **settings)
+    reference = LrbmsDecoder(H, check_groups=6, **settings)
     rng = np.random.default_rng(2)
     for _ in range(30):
         e = (rng.random(n) < 0.05).astype(np.uint8)
         s = H @ e % 2
-        assert np.array_equal(ens.decode(s), ref.decode(s))
+        assert np.array_equal(ensemble.decode(s), reference.decode(s))
 
 
 def test_ensemble_invalid_args():
     from ldpc.lrbms_decoder import LrbmsEnsembleDecoder
+
     H = bb_code_144()
     with pytest.raises(ValueError):
         LrbmsEnsembleDecoder(H, error_rate=0.05, stop="sometimes")
@@ -302,97 +315,147 @@ def test_ensemble_invalid_args():
 
 def test_ensemble_osd_on_last_member_only():
     from ldpc.lrbms_decoder import LrbmsEnsembleDecoder
+
     H = bb_code_144()
-    ens = LrbmsEnsembleDecoder(H, error_rate=0.05, num_groupings=3, stop="first", osd_members="last",
-                               osd_method="osd_cs", osd_order=4, max_iter=30)
-    assert [m.osd_method for m in ens.members] == ["OSD_OFF", "OSD_OFF", "OSD_CS"]
+    ensemble = LrbmsEnsembleDecoder(
+        H,
+        error_rate=0.05,
+        num_groupings=3,
+        stop="first",
+        osd_members="last",
+        osd_method="osd_cs",
+        osd_order=4,
+        max_iter=30,
+    )
+    osd_methods = [member.osd_method for member in ensemble.members]
+    assert osd_methods == ["OSD_OFF", "OSD_OFF", "OSD_CS"]
     rng = np.random.default_rng(4)
     for _ in range(30):
         e = (rng.random(H.shape[1]) < 0.05).astype(np.uint8)
         s = H @ e % 2
-        d = ens.decode(s)
-        assert ens.converge and np.array_equal(H @ d % 2, s)
+        d = ensemble.decode(s)
+        assert ensemble.converge and np.array_equal(H @ d % 2, s)
 
 
 def test_ensemble_escalate_mode():
     from ldpc.lrbms_decoder import LrbmsEnsembleDecoder
+
     H = bb_code_144()
     n = H.shape[1]
-    kw = dict(error_rate=0.06, num_groupings=4, max_iter=30, ms_scaling_factor=0.75,
-              osd_method="osd_cs", osd_order=4)
-    esc = LrbmsEnsembleDecoder(H, stop="escalate", **kw)
-    full = LrbmsEnsembleDecoder(H, stop="all", **kw)
+    settings = dict(
+        error_rate=0.06,
+        num_groupings=4,
+        max_iter=30,
+        ms_scaling_factor=0.75,
+        osd_method="osd_cs",
+        osd_order=4,
+    )
+    escalate = LrbmsEnsembleDecoder(H, stop="escalate", **settings)
+    run_all = LrbmsEnsembleDecoder(H, stop="all", **settings)
     rng = np.random.default_rng(5)
     for _ in range(40):
         e = (rng.random(n) < 0.06).astype(np.uint8)
         s = H @ e % 2
-        d = esc.decode(s)
-        assert esc.converge and np.array_equal(H @ d % 2, s)
-        first = esc.members[0].decode(s)
-        if esc.members[0].converge:
+        d = escalate.decode(s)
+        assert escalate.converge and np.array_equal(H @ d % 2, s)
+        first_output = escalate.members[0].decode(s)
+        if escalate.members[0].converge:
             # first member converged: escalate returns its output without running the others
-            assert np.array_equal(d, first)
+            assert np.array_equal(d, first_output)
         else:
             # otherwise it behaves exactly like 'all'
-            assert np.array_equal(d, full.decode(s))
+            assert np.array_equal(d, run_all.decode(s))
 
 
 # ------------------------------------------------------------- MBP4 + LRB-MS hybrid
 
+
 def _bb144_css():
-    H = bb_code_144()   # H_X = [A|B]; H_Z = [B^T|A^T]
-    n = H.shape[1]
-    m = H.shape[0]
-    A, B = H[:, : n // 2], H[:, n // 2:]
+    """(H_X, H_Z) of [[144,12,12]]: H_X = [A|B] and H_Z = [B^T|A^T]."""
+    hx = bb_code_144()
+    n = hx.shape[1]
+    A, B = hx[:, : n // 2], hx[:, n // 2 :]
     hz = np.hstack([B.T, A.T]).astype(np.uint8)
-    return H.astype(np.uint8), hz
+    return hx.astype(np.uint8), hz
+
+
+def _sample_depolarizing(rng, n, p):
+    """(x-part, z-part) of a depolarizing error with p/3 per Pauli."""
+    draw = rng.random(n)
+    is_x = draw < p / 3
+    is_y = (draw >= p / 3) & (draw < 2 * p / 3)
+    is_z = (draw >= 2 * p / 3) & (draw < p)
+    return (is_x | is_y).astype(np.uint8), (is_y | is_z).astype(np.uint8)
 
 
 def test_mbp_lrbms_reduces_to_binary_lrbms_for_pure_x_noise():
     from ldpc.lrbms_decoder import MbpLrbmsDecoder
+
     hx, hz = _bb144_css()
     n = hx.shape[1]
     p = 0.05
     groups = overlap_check_groups(hz, 6)
-    hyb = MbpLrbmsDecoder(hx, hz, channel=(p, 0.0, 0.0), z_groups=groups, x_groups=6,
-                          max_iter=50, mu=0.75, alpha=1.0, lrbms_order=4, schedule="serial")
-    ref = LrbmsDecoder(hz, error_rate=p, check_groups=groups, max_iter=50,
-                       ms_scaling_factor=0.75, lrbms_order=4, schedule="serial")
+    hybrid = MbpLrbmsDecoder(
+        hx,
+        hz,
+        channel=(p, 0.0, 0.0),
+        z_groups=groups,
+        x_groups=6,
+        max_iter=50,
+        mu=0.75,
+        alpha=1.0,
+        lrbms_order=4,
+        schedule="serial",
+    )
+    reference = LrbmsDecoder(
+        hz,
+        error_rate=p,
+        check_groups=groups,
+        max_iter=50,
+        ms_scaling_factor=0.75,
+        lrbms_order=4,
+        schedule="serial",
+    )
     rng = np.random.default_rng(3)
     for _ in range(60):
-        e = (rng.random(n) < p).astype(np.uint8)
-        sz = hz @ e % 2
-        ex, ez = hyb.decode(np.zeros(hx.shape[0], dtype=np.uint8), sz)
-        d = ref.decode(sz)
-        assert np.array_equal(ex, d)
-        assert not ez.any()
-        assert hyb.converge == ref.converge
-        if ref.converge:
-            assert hyb.iterations == ref.iterations
+        error_x = (rng.random(n) < p).astype(np.uint8)
+        syndrome_z = hz @ error_x % 2
+        decoded_x, decoded_z = hybrid.decode(np.zeros(hx.shape[0], dtype=np.uint8), syndrome_z)
+        assert np.array_equal(decoded_x, reference.decode(syndrome_z))
+        assert not decoded_z.any()
+        assert hybrid.converge == reference.converge
+        if reference.converge:
+            assert hybrid.iterations == reference.iterations
 
 
 def test_mbp_lrbms_depolarizing_outputs_and_setters():
     from ldpc.lrbms_decoder import MbpLrbmsDecoder
+
     hx, hz = _bb144_css()
     n = hx.shape[1]
     p = 0.06
-    dec = MbpLrbmsDecoder(hx, hz, error_rate=p, x_groups=6, z_groups=6, max_iter=60,
-                          mu=0.75, alpha=0.9, lrbms_order=1)
+    decoder = MbpLrbmsDecoder(
+        hx, hz, error_rate=p, x_groups=6, z_groups=6, max_iter=60, mu=0.75, alpha=0.9, lrbms_order=1
+    )
     rng = np.random.default_rng(4)
     converged = 0
     for _ in range(40):
-        r = rng.random(n)
-        ex = ((r < p / 3) | ((r >= p / 3) & (r < 2 * p / 3))).astype(np.uint8)   # X or Y
-        ez = (((r >= p / 3) & (r < 2 * p / 3)) | ((r >= 2 * p / 3) & (r < p))).astype(np.uint8)  # Y or Z
-        sx, sz = hx @ ez % 2, hz @ ex % 2
-        dx, dz = dec.decode(sx, sz)
-        if dec.converge:
+        error_x, error_z = _sample_depolarizing(rng, n, p)
+        syndrome_x, syndrome_z = hx @ error_z % 2, hz @ error_x % 2
+        decoded_x, decoded_z = decoder.decode(syndrome_x, syndrome_z)
+        if decoder.converge:
             converged += 1
-            assert np.array_equal(hz @ dx % 2, sz) and np.array_equal(hx @ dz % 2, sx)
+            assert np.array_equal(hz @ decoded_x % 2, syndrome_z)
+            assert np.array_equal(hx @ decoded_z % 2, syndrome_x)
     assert converged >= 30
-    dec.mu, dec.alpha, dec.schedule, dec.max_iter = 0.9, 0.7, "parallel", 20
-    assert (dec.mu, dec.alpha, dec.schedule, dec.max_iter) == (0.9, 0.7, "parallel", 20)
+    decoder.mu, decoder.alpha, decoder.schedule, decoder.max_iter = 0.9, 0.7, "parallel", 20
+    assert (decoder.mu, decoder.alpha, decoder.schedule, decoder.max_iter) == (
+        0.9,
+        0.7,
+        "parallel",
+        20,
+    )
     with pytest.raises(ValueError):
-        dec.alpha = 0.0
+        decoder.alpha = 0.0
     with pytest.raises(ValueError):
-        MbpLrbmsDecoder(hx, hx, error_rate=0.05)   # hx with itself does not commute
+        MbpLrbmsDecoder(hx, hx, error_rate=0.05)  # hx with itself does not commute

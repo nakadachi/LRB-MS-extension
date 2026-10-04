@@ -7,22 +7,22 @@
  * CSS code with X checks H_X and Z checks H_Z. Each qubit n carries the quaternary
  * log-ratios Gamma_n^W = ln P(I)/P(W) for W in {X, Y, Z} (index 0, 1, 2).
  *
- * Check layers. A Z-type check only sees whether E_n anticommutes with Z, i.e. the x-bit of
- * E_n (E_n in {X, Y}); an X-type check only sees the z-bit (E_n in {Z, Y}). Rows of H_Z are
- * grouped into generalized checks (GCs) that act on x-bits, rows of H_X into GCs acting on
- * z-bits. Each GC is updated with the binary LRB-MS rule of lrbms.hpp, whose output is
- * scaled by mu (the min-sum normalisation).
+ * Check layers. A Z-type check only sees whether the error E_n anticommutes with Z, i.e. the
+ * x-bit of E_n (E_n in {X, Y}); an X-type check only sees the z-bit (E_n in {Z, Y}). Rows of H_Z
+ * are grouped into generalized checks (GCs) acting on x-bits, rows of H_X into GCs acting on
+ * z-bits. Each GC is updated with the binary LRB-MS rule of lrbms.hpp, whose output is scaled
+ * by mu (the min-sum normalisation).
  *
- * Variable node (MBP4, Kuo & Lai). With Delta_{c->n} the binary output of GC c,
- *     Gamma_n^W = Lambda_n^W + (1/alpha) * sum_{c : W anticommutes with c's type} Delta_{c->n}.
+ * Variable node (MBP4, Kuo and Lai). With Delta_{c->n} the binary output of GC c,
+ *     Gamma_n^W = Lambda_n^W + (1 / alpha) * sum_{c : W anticommutes with c's type} Delta_{c->n}.
  * The message to GC c uses Gamma minus c's own previous output, subtracted *without* the
- * 1/alpha factor (memory / inhibition when alpha < 1):
+ * 1 / alpha factor (memory / inhibition when alpha < 1):
  *     lambda_{n->c}^W = Gamma_n^W - [W anticommutes] Delta_{c->n},
  * converted to the binary commutation LLR
  *     ln( (1 + e^{-lambda^P}) / (e^{-lambda^{W1}} + e^{-lambda^{W2}}) ),
  * where P commutes with the check type and W1, W2 anticommute.
  *
- * Schedule: serial over GCs (layered; Z-type GCs, then X-type GCs, each iteration) or parallel.
+ * Schedule: serial over GCs (layered: Z-type GCs, then X-type GCs, each iteration) or parallel.
  * With p_Y = p_Z = 0 and alpha = 1, the x-bit decisions coincide with binary LRB-MS on H_Z.
  */
 
@@ -32,154 +32,247 @@ namespace ldpc {
 namespace lrbms {
 
 class MbpLrbmsDecoder {
-public:
-    int n;
-    LrbmsDecoder zlayer;   // GCs over rows of H_Z, acting on x-bits
-    LrbmsDecoder xlayer;   // GCs over rows of H_X, acting on z-bits
-    std::vector<double> lam[3];     // channel log-ratios ln P(I)/P(W)
-    std::vector<double> gamma[3];   // posteriors
+  public:
+    // Pauli indices used for the quaternary log-ratios.
+    static constexpr int PAULI_X = 0;
+    static constexpr int PAULI_Y = 1;
+    static constexpr int PAULI_Z = 2;
+
+    int qubit_count;
+    LrbmsDecoder z_layer;               // GCs over rows of H_Z, acting on x-bits
+    LrbmsDecoder x_layer;               // GCs over rows of H_X, acting on z-bits
+    std::vector<double> channel_llr[3]; // ln P(I)/P(W)
+    std::vector<double> posterior[3];   // Gamma^W
     int maximum_iterations;
     double alpha;
     LrbmsSchedule schedule;
     double llr_clip;
-    std::vector<uint8_t> ex, ez;    // hard decision: x-part and z-part of the error
+    std::vector<uint8_t> error_x; // hard decision: x-part of the error
+    std::vector<uint8_t> error_z; // hard decision: z-part of the error
     int iterations = 0;
     bool converge = false;
 
-    MbpLrbmsDecoder(int n_, const std::vector<std::vector<int>> &hx_rows, const std::vector<std::vector<int>> &hz_rows,
-                    const std::vector<std::vector<int>> &x_groups, const std::vector<std::vector<int>> &z_groups,
-                    const std::vector<double> &px, const std::vector<double> &py, const std::vector<double> &pz,
-                    int max_iter, double mu, double alpha_, int order, LrbmsSchedule sched, double clip)
-        : n(n_),
-          zlayer((int) hz_rows.size(), n_, hz_rows, z_groups, std::vector<double>(n_, 0.1), max_iter, mu, order, LRBMS, sched, clip),
-          xlayer((int) hx_rows.size(), n_, hx_rows, x_groups, std::vector<double>(n_, 0.1), max_iter, mu, order, LRBMS, sched, clip),
-          maximum_iterations(max_iter), alpha(alpha_), schedule(sched), llr_clip(clip) {
-        if (alpha <= 0.0) throw std::invalid_argument("MbpLrbmsDecoder: alpha must be positive");
-        set_channel(px, py, pz);
-        ex.assign(n, 0);
-        ez.assign(n, 0);
+    MbpLrbmsDecoder(int qubit_count_, const std::vector<std::vector<int>> &hx_rows,
+                    const std::vector<std::vector<int>> &hz_rows,
+                    const std::vector<std::vector<int>> &x_groups,
+                    const std::vector<std::vector<int>> &z_groups, const std::vector<double> &p_x,
+                    const std::vector<double> &p_y, const std::vector<double> &p_z, int max_iter,
+                    double mu, double alpha_, int lrbms_order, LrbmsSchedule schedule_,
+                    double llr_clip_)
+        : qubit_count(qubit_count_),
+          z_layer(static_cast<int>(hz_rows.size()), qubit_count_, hz_rows, z_groups,
+                  std::vector<double>(qubit_count_, 0.1), max_iter, mu, lrbms_order, LRBMS,
+                  schedule_, llr_clip_),
+          x_layer(static_cast<int>(hx_rows.size()), qubit_count_, hx_rows, x_groups,
+                  std::vector<double>(qubit_count_, 0.1), max_iter, mu, lrbms_order, LRBMS,
+                  schedule_, llr_clip_),
+          maximum_iterations(max_iter), alpha(alpha_), schedule(schedule_), llr_clip(llr_clip_) {
+        if (alpha <= 0.0) {
+            throw std::invalid_argument("MbpLrbmsDecoder: alpha must be positive");
+        }
+        set_channel(p_x, p_y, p_z);
+        error_x.assign(qubit_count, 0);
+        error_z.assign(qubit_count, 0);
     }
 
-    void set_channel(const std::vector<double> &px, const std::vector<double> &py, const std::vector<double> &pz) {
-        if ((int) px.size() != n || (int) py.size() != n || (int) pz.size() != n)
+    void set_channel(const std::vector<double> &p_x, const std::vector<double> &p_y,
+                     const std::vector<double> &p_z) {
+        if (static_cast<int>(p_x.size()) != qubit_count ||
+            static_cast<int>(p_y.size()) != qubit_count ||
+            static_cast<int>(p_z.size()) != qubit_count) {
             throw std::invalid_argument("MbpLrbmsDecoder: channel vectors must have length n");
-        const std::vector<double> *pw[3] = {&px, &py, &pz};
-        for (int w = 0; w < 3; w++) lam[w].assign(n, 0.0);
-        for (int j = 0; j < n; j++) {
-            double pi = 1.0 - px[j] - py[j] - pz[j];
-            if (pi <= 0.0) throw std::invalid_argument("MbpLrbmsDecoder: p_X + p_Y + p_Z must be < 1");
+        }
+        const std::vector<double> *pauli_probs[3] = {&p_x, &p_y, &p_z};
+        for (int w = 0; w < 3; w++) {
+            channel_llr[w].assign(qubit_count, 0.0);
+        }
+        for (int q = 0; q < qubit_count; q++) {
+            const double p_identity = 1.0 - p_x[q] - p_y[q] - p_z[q];
+            if (p_identity <= 0.0) {
+                throw std::invalid_argument("MbpLrbmsDecoder: p_X + p_Y + p_Z must be < 1");
+            }
             for (int w = 0; w < 3; w++) {
-                double p = (*pw[w])[j];
-                lam[w][j] = p <= 0.0 ? llr_clip : std::log(pi / p);
+                const double p_w = (*pauli_probs[w])[q];
+                channel_llr[w][q] = p_w <= 0.0 ? llr_clip : std::log(p_identity / p_w);
             }
         }
     }
 
-    void set_mu(double mu) { zlayer.ms_scaling_factor = mu; xlayer.ms_scaling_factor = mu; }
-
-    // binary commutation LLR from quaternary message log-ratios l[0..2] (X, Y, Z);
-    // c = index of the Pauli that commutes with the check type (Z-type check: Z = 2; X-type: X = 0)
-    static double to_binary(const double l[3], int c) {
-        // ln(1 + e^{-l_c}) - ln(e^{-l_a} + e^{-l_b}) for {a, b} the other two, computed stably
-        int a = (c + 1) % 3, b = (c + 2) % 3;
-        double num = l[c] > 0 ? std::log1p(std::exp(-l[c])) : -l[c] + std::log1p(std::exp(l[c]));
-        double m = std::min(l[a], l[b]);
-        double den = -m + std::log1p(std::exp(-(std::max(l[a], l[b]) - m)));
-        return num - den;
+    void set_mu(double mu) {
+        z_layer.ms_scaling_factor = mu;
+        x_layer.ms_scaling_factor = mu;
     }
 
-    // layer type: 0 = Z-type GCs (anticommuting Paulis X, Y; commuting Z), 1 = X-type (anticommuting Z, Y; commuting X)
-    void update_gc(LrbmsDecoder &L, size_t c, int type, const std::vector<uint8_t> &synd,
-                   std::vector<double> &in, std::vector<double> &out, std::vector<double> *new_msgs) {
-        auto &gc = L.gcs[c];
-        const int s = (int) gc.support.size();
-        const int comm = type == 0 ? 2 : 0;
-        in.resize(s);
-        out.resize(s);
-        for (int k = 0; k < s; k++) {
-            int j = gc.support[k];
-            double old = L.c2v[gc.msg_offset + k];
-            double l[3];
-            for (int w = 0; w < 3; w++) l[w] = gamma[w][j] - (w != comm ? old : 0.0);
-            in[k] = to_binary(l, comm);
+    // Binary commutation LLR from quaternary log-ratios llr[0..2] (X, Y, Z):
+    //     ln(1 + e^{-llr[commuting]}) - ln(e^{-llr[a]} + e^{-llr[b]}),
+    // where {a, b} are the two Paulis that anticommute with the check type. Computed stably.
+    static double to_binary_llr(const double llr[3], int commuting) {
+        const int a = (commuting + 1) % 3;
+        const int b = (commuting + 2) % 3;
+        const double l_c = llr[commuting];
+        const double numerator =
+            l_c > 0 ? std::log1p(std::exp(-l_c)) : -l_c + std::log1p(std::exp(l_c));
+        const double low = std::min(llr[a], llr[b]);
+        const double high = std::max(llr[a], llr[b]);
+        const double denominator = -low + std::log1p(std::exp(-(high - low)));
+        return numerator - denominator;
+    }
+
+    // The Pauli that commutes with every check of a layer: Z for the Z-type layer, X otherwise.
+    int commuting_pauli(const LrbmsDecoder &layer) const {
+        return &layer == &z_layer ? PAULI_Z : PAULI_X;
+    }
+
+    // Updates GC `gc_index` of `layer`. With `parallel_out` == nullptr (serial schedule), the
+    // new GC outputs are applied to the posteriors immediately; otherwise they are stored in
+    // `parallel_out` and applied later by recompute_posteriors().
+    void update_gc(LrbmsDecoder &layer, size_t gc_index, const std::vector<uint8_t> &local_syndrome,
+                   std::vector<double> &gc_input, std::vector<double> &gc_output,
+                   std::vector<double> *parallel_out) {
+        const GeneralizedCheck &gc = layer.gcs[gc_index];
+        const int support_size = static_cast<int>(gc.support.size());
+        const int commuting = commuting_pauli(layer);
+        gc_input.resize(support_size);
+        gc_output.resize(support_size);
+        for (int k = 0; k < support_size; k++) {
+            const int qubit = gc.support[k];
+            const double previous = layer.c2v[gc.msg_offset + k];
+            double message[3];
+            for (int w = 0; w < 3; w++) {
+                message[w] = posterior[w][qubit] - (w != commuting ? previous : 0.0);
+            }
+            gc_input[k] = to_binary_llr(message, commuting);
         }
-        L.gc_update(gc, synd, in, out);
-        for (int k = 0; k < s; k++) {
-            if (new_msgs) { (*new_msgs)[gc.msg_offset + k] = out[k]; continue; }
-            int j = gc.support[k];
-            double delta = (out[k] - L.c2v[gc.msg_offset + k]) / alpha;
-            for (int w = 0; w < 3; w++) if (w != comm) gamma[w][j] += delta;
-            L.c2v[gc.msg_offset + k] = out[k];
+        layer.gc_update(gc, local_syndrome, gc_input, gc_output);
+        for (int k = 0; k < support_size; k++) {
+            if (parallel_out != nullptr) {
+                (*parallel_out)[gc.msg_offset + k] = gc_output[k];
+                continue;
+            }
+            const int qubit = gc.support[k];
+            const double change = (gc_output[k] - layer.c2v[gc.msg_offset + k]) / alpha;
+            for (int w = 0; w < 3; w++) {
+                if (w != commuting) {
+                    posterior[w][qubit] += change;
+                }
+            }
+            layer.c2v[gc.msg_offset + k] = gc_output[k];
         }
     }
 
-    void recompute_gamma() {
-        for (int w = 0; w < 3; w++) gamma[w] = lam[w];
-        for (int type = 0; type < 2; type++) {
-            LrbmsDecoder &L = type == 0 ? zlayer : xlayer;
-            const int comm = type == 0 ? 2 : 0;
-            for (int t = 0; t < L.total_msgs; t++)
-                for (int w = 0; w < 3; w++) if (w != comm) gamma[w][L.msg_var[t]] += L.c2v[t] / alpha;
+    void recompute_posteriors() {
+        for (int w = 0; w < 3; w++) {
+            posterior[w] = channel_llr[w];
+        }
+        for (const LrbmsDecoder *layer : {&z_layer, &x_layer}) {
+            const int commuting = commuting_pauli(*layer);
+            for (int m = 0; m < layer->total_msgs; m++) {
+                for (int w = 0; w < 3; w++) {
+                    if (w != commuting) {
+                        posterior[w][layer->msg_var[m]] += layer->c2v[m] / alpha;
+                    }
+                }
+            }
         }
     }
 
-    static std::vector<std::vector<uint8_t>> local_syndromes(const LrbmsDecoder &L, const std::vector<uint8_t> &s) {
-        std::vector<std::vector<uint8_t>> out(L.gcs.size());
-        for (size_t c = 0; c < L.gcs.size(); c++) {
-            out[c].resize(L.gcs[c].ell);
-            for (int i = 0; i < L.gcs[c].ell; i++) out[c][i] = s[L.gcs[c].rows[i]] & 1;
+    static std::vector<std::vector<uint8_t>> local_syndromes(const LrbmsDecoder &layer,
+                                                             const std::vector<uint8_t> &syndrome) {
+        std::vector<std::vector<uint8_t>> out(layer.gcs.size());
+        for (size_t c = 0; c < layer.gcs.size(); c++) {
+            out[c].resize(layer.gcs[c].ell);
+            for (int i = 0; i < layer.gcs[c].ell; i++) {
+                out[c][i] = syndrome[layer.gcs[c].rows[i]] & 1;
+            }
         }
         return out;
     }
 
     void hard_decision() {
-        for (int j = 0; j < n; j++) {
-            int best = -1;
-            double mn = 0.0;   // identity has log-ratio 0
-            for (int w = 0; w < 3; w++) if (gamma[w][j] < mn) { mn = gamma[w][j]; best = w; }
-            ex[j] = (best == 0 || best == 1) ? 1 : 0;   // X or Y
-            ez[j] = (best == 2 || best == 1) ? 1 : 0;   // Z or Y
+        for (int q = 0; q < qubit_count; q++) {
+            int best = -1;         // -1 = identity
+            double best_llr = 0.0; // the identity has log-ratio 0
+            for (int w = 0; w < 3; w++) {
+                if (posterior[w][q] < best_llr) {
+                    best_llr = posterior[w][q];
+                    best = w;
+                }
+            }
+            error_x[q] = (best == PAULI_X || best == PAULI_Y) ? 1 : 0;
+            error_z[q] = (best == PAULI_Z || best == PAULI_Y) ? 1 : 0;
         }
     }
 
-    bool matches(const LrbmsDecoder &L, const std::vector<uint8_t> &bits, const std::vector<uint8_t> &s) const {
-        for (int i = 0; i < L.check_count; i++) {
-            uint8_t b = 0;
-            for (int j: L.pcm_rows[i]) b ^= bits[j];
-            if (b != (s[i] & 1)) return false;
+    static bool syndrome_matches(const LrbmsDecoder &layer, const std::vector<uint8_t> &bits,
+                                 const std::vector<uint8_t> &syndrome) {
+        for (int i = 0; i < layer.check_count; i++) {
+            uint8_t parity = 0;
+            for (int q : layer.pcm_rows[i]) {
+                parity ^= bits[q];
+            }
+            if (parity != (syndrome[i] & 1)) {
+                return false;
+            }
         }
         return true;
     }
 
-    // sx: syndrome of the X checks (detects z-part), sz: syndrome of the Z checks (detects x-part)
-    void decode(const std::vector<uint8_t> &sx, const std::vector<uint8_t> &sz) {
-        if ((int) sx.size() != xlayer.check_count || (int) sz.size() != zlayer.check_count)
+    bool decision_matches(const std::vector<uint8_t> &syndrome_x,
+                          const std::vector<uint8_t> &syndrome_z) const {
+        return syndrome_matches(z_layer, error_x, syndrome_z) &&
+               syndrome_matches(x_layer, error_z, syndrome_x);
+    }
+
+    // syndrome_x: syndrome of the X checks (detects the z-part of the error);
+    // syndrome_z: syndrome of the Z checks (detects the x-part).
+    void decode(const std::vector<uint8_t> &syndrome_x, const std::vector<uint8_t> &syndrome_z) {
+        if (static_cast<int>(syndrome_x.size()) != x_layer.check_count ||
+            static_cast<int>(syndrome_z.size()) != z_layer.check_count) {
             throw std::invalid_argument("MbpLrbmsDecoder: syndrome length mismatch");
-        std::fill(zlayer.c2v.begin(), zlayer.c2v.end(), 0.0);
-        std::fill(xlayer.c2v.begin(), xlayer.c2v.end(), 0.0);
-        for (int w = 0; w < 3; w++) gamma[w] = lam[w];
-        auto zs = local_syndromes(zlayer, sz);
-        auto xs = local_syndromes(xlayer, sx);
-        int max_iter = maximum_iterations > 0 ? maximum_iterations : n;
+        }
+        std::fill(z_layer.c2v.begin(), z_layer.c2v.end(), 0.0);
+        std::fill(x_layer.c2v.begin(), x_layer.c2v.end(), 0.0);
+        for (int w = 0; w < 3; w++) {
+            posterior[w] = channel_llr[w];
+        }
+        const auto z_local = local_syndromes(z_layer, syndrome_z);
+        const auto x_local = local_syndromes(x_layer, syndrome_x);
+        const int max_iter = maximum_iterations > 0 ? maximum_iterations : qubit_count;
         converge = false;
         iterations = 0;
-        std::vector<double> in, out;
+        std::vector<double> gc_input;
+        std::vector<double> gc_output;
+
         hard_decision();
-        if (matches(zlayer, ex, sz) && matches(xlayer, ez, sx)) { converge = true; return; }
+        if (decision_matches(syndrome_x, syndrome_z)) {
+            converge = true;
+            return;
+        }
         for (int it = 1; it <= max_iter; it++) {
             iterations = it;
             if (schedule == SERIAL) {
-                for (size_t c = 0; c < zlayer.gcs.size(); c++) update_gc(zlayer, c, 0, zs[c], in, out, nullptr);
-                for (size_t c = 0; c < xlayer.gcs.size(); c++) update_gc(xlayer, c, 1, xs[c], in, out, nullptr);
+                for (size_t c = 0; c < z_layer.gcs.size(); c++) {
+                    update_gc(z_layer, c, z_local[c], gc_input, gc_output, nullptr);
+                }
+                for (size_t c = 0; c < x_layer.gcs.size(); c++) {
+                    update_gc(x_layer, c, x_local[c], gc_input, gc_output, nullptr);
+                }
             } else {
-                for (size_t c = 0; c < zlayer.gcs.size(); c++) update_gc(zlayer, c, 0, zs[c], in, out, &zlayer.c2v_new);
-                for (size_t c = 0; c < xlayer.gcs.size(); c++) update_gc(xlayer, c, 1, xs[c], in, out, &xlayer.c2v_new);
-                zlayer.c2v.swap(zlayer.c2v_new);
-                xlayer.c2v.swap(xlayer.c2v_new);
-                recompute_gamma();
+                for (size_t c = 0; c < z_layer.gcs.size(); c++) {
+                    update_gc(z_layer, c, z_local[c], gc_input, gc_output, &z_layer.c2v_new);
+                }
+                for (size_t c = 0; c < x_layer.gcs.size(); c++) {
+                    update_gc(x_layer, c, x_local[c], gc_input, gc_output, &x_layer.c2v_new);
+                }
+                z_layer.c2v.swap(z_layer.c2v_new);
+                x_layer.c2v.swap(x_layer.c2v_new);
+                recompute_posteriors();
             }
             hard_decision();
-            if (matches(zlayer, ex, sz) && matches(xlayer, ez, sx)) { converge = true; break; }
+            if (decision_matches(syndrome_x, syndrome_z)) {
+                converge = true;
+                break;
+            }
         }
     }
 };

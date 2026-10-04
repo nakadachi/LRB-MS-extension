@@ -183,7 +183,8 @@ class LrbmsDecoder:
 
 
 
-def _rows_of(H): ...
+def _rows_of(pcm):
+    """Column indices of the nonzero entries of each row of a CSR matrix."""
 
 
 class MbpLrbmsDecoder:
@@ -213,12 +214,25 @@ class MbpLrbmsDecoder:
         nodes; LRB-MS order; ``'serial'`` or ``'parallel'``; message clip.
     """
 
-    def __cinit__(self, hx, hz, error_rate=None, channel=None, x_groups=None, z_groups=None,
-                  max_iter=100, mu=0.75, alpha=1.0, lrbms_order=0, schedule="serial", llr_clip=50.0): ...
+    def __cinit__(
+        self,
+        hx,
+        hz,
+        error_rate=None,
+        channel=None,
+        x_groups=None,
+        z_groups=None,
+        max_iter=100,
+        mu=0.75,
+        alpha=1.0,
+        lrbms_order=0,
+        schedule="serial",
+        llr_clip=50.0,
+    ): ...
 
     def __dealloc__(self): ...
 
-    def _resolve(self, H, groups): ...
+    def _resolve_groups(self, pcm, groups): ...
 
     def _resolve_channel(self, error_rate, channel): ...
 

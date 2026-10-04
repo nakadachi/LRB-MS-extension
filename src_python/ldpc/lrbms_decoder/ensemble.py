@@ -19,12 +19,15 @@ def permuted_overlap_groupings(
     """
     pcm = scipy.sparse.csr_matrix(pcm)
     rng = np.random.default_rng(seed)
-    out = []
-    for i in range(count):
-        perm = np.arange(pcm.shape[0]) if i == 0 else rng.permutation(pcm.shape[0])
-        groups = overlap_check_groups(pcm[perm], ell)
-        out.append([sorted(int(perm[r]) for r in g) for g in groups])
-    return out
+    groupings = []
+    for index in range(count):
+        if index == 0:
+            row_order = np.arange(pcm.shape[0])
+        else:
+            row_order = rng.permutation(pcm.shape[0])
+        groups = overlap_check_groups(pcm[row_order], ell)
+        groupings.append([sorted(int(row_order[row]) for row in group) for group in groups])
+    return groupings
 
 
 class LrbmsEnsembleDecoder:
@@ -64,15 +67,25 @@ class LrbmsEnsembleDecoder:
         ``lrbms_order``, ``schedule``, ``osd_method``, ``osd_order``, ...).
     """
 
-    def __init__(self, pcm, error_rate: Optional[float] = None, error_channel=None,
-                 groupings: Optional[Sequence] = None, ell: int = 8, num_groupings: int = 4,
-                 seed: int = 0, stop: str = "all", osd_members: str = "all", **kwargs):
+    def __init__(
+        self,
+        pcm,
+        error_rate: Optional[float] = None,
+        error_channel=None,
+        groupings: Optional[Sequence] = None,
+        ell: int = 8,
+        num_groupings: int = 4,
+        seed: int = 0,
+        stop: str = "all",
+        osd_members: str = "all",
+        **kwargs,
+    ):
         if stop not in ("all", "escalate", "first"):
             raise ValueError("stop must be 'all', 'escalate' or 'first'.")
         if osd_members not in ("all", "last"):
             raise ValueError("osd_members must be 'all' or 'last'.")
         self.pcm = scipy.sparse.csr_matrix(pcm).astype(np.uint8)
-        n = self.pcm.shape[1]
+        bit_count = self.pcm.shape[1]
         if groupings is None:
             if num_groupings < 1:
                 raise ValueError("num_groupings must be >= 1.")
@@ -82,21 +95,28 @@ class LrbmsEnsembleDecoder:
         if error_channel is not None:
             probs = np.asarray(error_channel, dtype=float)
         elif error_rate is not None:
-            probs = np.full(n, float(error_rate))
+            probs = np.full(bit_count, float(error_rate))
         else:
             raise ValueError("Please specify error_rate or error_channel.")
         probs = np.clip(probs, 1e-300, 1 - 1e-16)
         self._weights = np.log((1 - probs) / probs)
         self.stop = stop
-        no_osd = {k: v for k, v in kwargs.items() if k not in ("osd_method", "osd_order")}
+        kwargs_without_osd = {
+            key: value for key, value in kwargs.items() if key not in ("osd_method", "osd_order")
+        }
+        last = len(groupings) - 1
         self.members = [
-            LrbmsDecoder(self.pcm, error_channel=probs, check_groups=g,
-                         **(kwargs if osd_members == "all" or i == len(groupings) - 1 else no_osd))
-            for i, g in enumerate(groupings)
+            LrbmsDecoder(
+                self.pcm,
+                error_channel=probs,
+                check_groups=grouping,
+                **(kwargs if osd_members == "all" or index == last else kwargs_without_osd),
+            )
+            for index, grouping in enumerate(groupings)
         ]
         self._converge = False
         self._member = -1
-        self._decoding = np.zeros(n, dtype=np.uint8)
+        self._decoding = np.zeros(bit_count, dtype=np.uint8)
 
     def decode(self, syndrome) -> np.ndarray:
         """Decode a syndrome; returns the lowest-cost syndrome-valid member output.
@@ -105,20 +125,22 @@ class LrbmsEnsembleDecoder:
         and :attr:`converge` is False.
         """
         syndrome = np.asarray(syndrome).astype(np.uint8) % 2
-        best, best_cost, best_i, first = None, np.inf, -1, None
-        for i, dec in enumerate(self.members):
-            d = np.asarray(dec.decode(syndrome), dtype=np.uint8)
-            if first is None:
-                first = d
-            if np.array_equal((self.pcm @ d) % 2, syndrome):
-                cost = float(self._weights @ d)
+        best_output, best_cost, best_index = None, np.inf, -1
+        first_output = None
+        for index, member in enumerate(self.members):
+            output = np.asarray(member.decode(syndrome), dtype=np.uint8)
+            if first_output is None:
+                first_output = output
+            if np.array_equal((self.pcm @ output) % 2, syndrome):
+                cost = float(self._weights @ output)
                 if cost < best_cost:
-                    best, best_cost, best_i = d.copy(), cost, i
-            if dec.converge and (self.stop == "first" or (self.stop == "escalate" and i == 0)):
+                    best_output, best_cost, best_index = output.copy(), cost, index
+            stop_here = self.stop == "first" or (self.stop == "escalate" and index == 0)
+            if member.converge and stop_here:
                 break
-        self._converge = best is not None
-        self._member = best_i
-        self._decoding = best if best is not None else first
+        self._converge = best_output is not None
+        self._member = best_index
+        self._decoding = best_output if best_output is not None else first_output
         return self._decoding.copy()
 
     @property
@@ -137,4 +159,4 @@ class LrbmsEnsembleDecoder:
 
     @property
     def groupings(self) -> List[List[List[int]]]:
-        return [m.check_groups for m in self.members]
+        return [member.check_groups for member in self.members]

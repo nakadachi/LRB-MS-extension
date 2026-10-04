@@ -2,12 +2,15 @@
 
 Total no-conjugacy cannot hold for |G| = 12 with |A| = |B| = 6, so it is not required here.
 """
+
 import sys
+
 import numpy as np
 from qldpc import abstract
+
+from distance import distance_upper_bound
 from qtanner_codes import build_qtanner, generates, group_table, random_symmetric_subset
 from search_codes import H_A, H_B
-from distance import distance_upper_bound
 
 GROUPS12 = {
     "C12": lambda: abstract.CyclicGroup(12),
@@ -16,13 +19,13 @@ GROUPS12 = {
     "A4": lambda: abstract.AlternatingGroup(4),
 }
 
-if __name__ == "__main__":
+
+def main():
     tries = int(sys.argv[1]) if len(sys.argv) > 1 else 60
-    best = []
-    for name, G in GROUPS12.items():
-        mul, inv, ident = group_table(G())
+    for name, make_group in GROUPS12.items():
+        mul, inv, ident = group_table(make_group())
         rng = np.random.default_rng(1)
-        for t in range(tries):
+        for attempt in range(tries):
             A = random_symmetric_subset(mul, inv, ident, 6, rng)
             B = random_symmetric_subset(mul, inv, ident, 6, rng)
             if not generates(mul, A + B, ident):
@@ -31,6 +34,13 @@ if __name__ == "__main__":
             k = code.lx.shape[0]
             if k != 20:
                 continue
-            dx, _ = distance_upper_bound(code.hz, code.lz, trials=300, seed=t)
-            dz, _ = distance_upper_bound(code.hx, code.lx, trials=300, seed=t)
-            print(f"{name} try={t} n={code.n} k={k} dX<={dx} dZ<={dz} A={A} B={B}", flush=True)
+            dx, _ = distance_upper_bound(code.hz, code.lz, trials=300, seed=attempt)
+            dz, _ = distance_upper_bound(code.hx, code.lx, trials=300, seed=attempt)
+            print(
+                f"{name} try={attempt} n={code.n} k={k} dX<={dx} dZ<={dz} A={A} B={B}",
+                flush=True,
+            )
+
+
+if __name__ == "__main__":
+    main()
