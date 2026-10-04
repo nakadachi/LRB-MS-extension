@@ -1,0 +1,12 @@
+[
+  {"name": "BP sum-product (norm. 0.8)", "kind": "binary", "groups": "rows", "gc_method": "map",
+   "msf": 0.8, "max_iter": 200},
+  {"name": "SOGRAND (Rapp et al.)", "kind": "binary", "groups": "vertex", "gc_method": "sogrand",
+   "msf": 1.0, "max_iter": 200},
+  {"name": "SOGRAND+XZ (Rapp et al.)", "kind": "mbp", "groups": "vertex", "gc_method": "sogrand",
+   "mu": 1.0, "alpha": 1.0, "max_iter": 200},
+  {"name": "MAP binary (exact GC)", "kind": "binary", "groups": "vertex", "gc_method": "map",
+   "msf": 1.0, "max_iter": 200},
+  {"name": "LRB-MS-8 binary", "kind": "binary", "groups": "vertex", "gc_method": "lrbms", "t": 8,
+   "msf": 0.75, "schedule": "serial", "max_iter": 200}
+]

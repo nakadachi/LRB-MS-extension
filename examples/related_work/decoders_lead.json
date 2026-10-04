@@ -1,0 +1,4 @@
+[
+  {"name": "BP-OSD (min-sum, OSD-CS3)", "kind": "bposd", "osd_order": 3},
+  {"name": "LEAD (BP-LSD local, BP-OSD global)", "kind": "lead", "groups": "vertex", "scaling": 1.0}
+]

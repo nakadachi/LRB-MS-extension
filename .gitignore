@@ -355,3 +355,6 @@ build
 
 
 .DS_Store
+
+# external code repositories fetched by examples/related_work/fetch_codes.sh
+examples/related_work/external/

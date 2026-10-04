@@ -6,6 +6,54 @@ from typing import Optional, List, Union
 import ldpc.helpers.scipy_helpers
 from ldpc.lrbms_decoder.check_groups import overlap_check_groups
 
+_GC_METHOD_NAMES = {LRBMS: "lrbms", TRELLIS: "trellis", MAP: "map", SOGRAND: "sogrand"}
+
+
+cdef GcMethod _parse_gc_method(value) except *:
+    name = str(value).lower()
+    if name in ("lrbms", "lrb_ms", "lrb-ms", "0"):
+        return LRBMS
+    if name in ("trellis", "exact", "maxlog", "max-log", "1"):
+        return TRELLIS
+    if name in ("map", "bcjr", "sum_product", "sum-product", "2"):
+        return MAP
+    if name in ("sogrand", "3"):
+        return SOGRAND
+    raise ValueError(
+        f"gc_method '{value}' invalid. Choose 'lrbms', 'trellis', 'map' or 'sogrand'."
+    )
+
+
+def _parse_osd_method(osd_method, osd_order):
+    """(OsdMethod as int, order) for an OSD method name."""
+    order = int(osd_order)
+    method = str(osd_method).lower()
+    if method in ("off", "osd_off", "none", "-1"):
+        parsed = OSD_OFF
+    elif method in ("osd_0", "osd0", "0"):
+        parsed = OSD_0
+        order = 0
+    elif method in ("osd_cs", "cs", "combination_sweep", "1"):
+        parsed = COMBINATION_SWEEP
+    elif method in ("osd_e", "e", "exhaustive"):
+        parsed = EXHAUSTIVE
+    else:
+        raise ValueError(
+            f"osd_method '{osd_method}' invalid. Choose 'off', 'osd_0', 'osd_cs' or 'osd_e'."
+        )
+    if order < 0:
+        raise ValueError("osd_order must be a non-negative integer.")
+    return int(parsed), order
+
+
+cdef BpSparse* _bp_sparse_of(pcm):
+    """A new BpSparse copy of a CSR matrix (caller owns it)."""
+    cdef BpSparse* matrix = new BpSparse(pcm.shape[0], pcm.shape[1], int(pcm.nnz))
+    for row in range(pcm.shape[0]):
+        for column in pcm.indices[pcm.indptr[row]:pcm.indptr[row + 1]]:
+            matrix.insert_entry(row, int(column))
+    return matrix
+
 
 cdef class LrbmsDecoder:
     """
@@ -41,7 +89,11 @@ cdef class LrbmsDecoder:
         MRB positions are added to the candidate list (``LRB-MS-t``).
     gc_method : str
         ``'lrbms'`` (default) or ``'trellis'`` (exact min-sum over the local coset,
-        2^ell states; reference baseline, limited to ``ell <= max_trellis_ell``).
+        2^ell states; reference baseline, limited to ``ell <= max_trellis_ell``),
+        ``'map'`` (exact sum-product over the same trellis, the generalized-check update of
+        Mostad et al., arXiv:2603.05486) or ``'sogrand'`` (soft-output GRAND list decoding,
+        Rapp et al., arXiv:2603.18318). Single-row groups use min-sum for ``'lrbms'`` and
+        ``'trellis'`` and the box-plus (sum-product) rule for ``'map'`` and ``'sogrand'``.
     schedule : str
         ``'parallel'`` (flooding) or ``'serial'`` (layered over GCs).
     llr_clip : float
@@ -54,6 +106,10 @@ cdef class LrbmsDecoder:
         Uses the LRB-MS posterior LLRs as soft input, like ``BpOsdDecoder``.
     osd_order : int
         OSD order (ignored for ``'osd_0'``).
+    sogrand_list_size, sogrand_threshold, sogrand_max_queries, sogrand_intercept :
+        SOGRAND settings: maximum list size; stop once the estimated probability that the
+        true local pattern is not in the list is below the threshold; query limit per check
+        update (0: none); ORBGRAND intercept (negative: chosen from the input LLRs).
     """
 
     def __cinit__(self, pcm,
@@ -69,6 +125,10 @@ cdef class LrbmsDecoder:
                   max_trellis_ell=22,
                   osd_method="off",
                   osd_order=0,
+                  sogrand_list_size=4,
+                  sogrand_threshold=1e-5,
+                  sogrand_max_queries=0,
+                  sogrand_intercept=-1,
                   **kwargs):
 
         self.MEMORY_ALLOCATED = False
@@ -116,31 +176,19 @@ cdef class LrbmsDecoder:
         self._check_groups = groups
         self.gc_method = gc_method
         self.schedule = schedule
+        self.lrbmsd.sogrand_list_size = int(sogrand_list_size)
+        self.lrbmsd.sogrand_threshold = float(sogrand_threshold)
+        self.lrbmsd.sogrand_max_queries = int(sogrand_max_queries)
+        self.lrbmsd.sogrand_intercept = int(sogrand_intercept)
 
         # optional OSD post-processing on LRB-MS failures (reuses ldpc's OSD implementation)
-        cdef OsdMethod om
-        cdef int oo = int(osd_order)
-        method = str(osd_method).lower()
-        if method in ("off", "osd_off", "none", "-1"):
-            om = OSD_OFF
-        elif method in ("osd_0", "osd0", "0"):
-            om = OSD_0
-            oo = 0
-        elif method in ("osd_cs", "cs", "combination_sweep", "1"):
-            om = COMBINATION_SWEEP
-        elif method in ("osd_e", "e", "exhaustive"):
-            om = EXHAUSTIVE
-        else:
-            raise ValueError(f"osd_method '{osd_method}' invalid. Choose 'off', 'osd_0', 'osd_cs' or 'osd_e'.")
-        if oo < 0:
-            raise ValueError("osd_order must be a non-negative integer.")
+        parsed_method, parsed_order = _parse_osd_method(osd_method, osd_order)
+        cdef OsdMethod om = <OsdMethod> parsed_method
+        cdef int oo = parsed_order
         self._llr.resize(self.n)
         if om != OSD_OFF:
             self._osd_channel = cprobs
-            self.pcm_bp = new BpSparse(self.m, self.n, int(H.nnz))
-            for i in range(self.m):
-                for j in H.indices[H.indptr[i]:H.indptr[i + 1]]:
-                    self.pcm_bp.insert_entry(i, int(j))
+            self.pcm_bp = _bp_sparse_of(H)
             self.osdD = new OsdDecoderCpp(self.pcm_bp[0], om, oo, self._osd_channel)
             self.OSD_ALLOCATED = True
 
@@ -296,17 +344,29 @@ cdef class LrbmsDecoder:
 
     @property
     def gc_method(self) -> str:
-        return "trellis" if self.lrbmsd.gc_method == TRELLIS else "lrbms"
+        return _GC_METHOD_NAMES[self.lrbmsd.gc_method]
 
     @gc_method.setter
     def gc_method(self, value) -> None:
-        v = str(value).lower()
-        if v in ("lrbms", "lrb_ms", "lrb-ms", "0"):
-            self.lrbmsd.gc_method = LRBMS
-        elif v in ("trellis", "exact", "map", "1"):
-            self.lrbmsd.gc_method = TRELLIS
-        else:
-            raise ValueError(f"gc_method '{value}' invalid. Choose 'lrbms' or 'trellis'.")
+        self.lrbmsd.gc_method = _parse_gc_method(value)
+
+    @property
+    def sogrand_list_size(self) -> int:
+        return self.lrbmsd.sogrand_list_size
+
+    @sogrand_list_size.setter
+    def sogrand_list_size(self, value) -> None:
+        if value < 1:
+            raise ValueError("sogrand_list_size must be at least 1.")
+        self.lrbmsd.sogrand_list_size = int(value)
+
+    @property
+    def sogrand_threshold(self) -> float:
+        return self.lrbmsd.sogrand_threshold
+
+    @sogrand_threshold.setter
+    def sogrand_threshold(self, value) -> None:
+        self.lrbmsd.sogrand_threshold = float(value)
 
     @property
     def schedule(self) -> str:
@@ -410,15 +470,19 @@ def _rows_of(pcm):
 
 cdef class MbpLrbmsDecoder:
     """
-    MBP4 + LRB-MS: quaternary memory-BP variable nodes with LRB-MS generalized checks.
+    MBP4 with generalized checks: quaternary memory-BP variable nodes, check groups updated
+    with any binary generalized-check rule of :class:`LrbmsDecoder`.
 
     Decodes X and Z errors of a CSS code jointly (e.g. under depolarizing noise). Rows of
     ``hz`` are grouped into generalized checks acting on the x-part of the error, rows of
     ``hx`` into generalized checks acting on the z-part. Each check group is updated with the
-    binary LRB-MS rule, its output scaled by ``mu``; each qubit keeps quaternary log-ratios
+    rule ``gc_method``, its output scaled by ``mu``; each qubit keeps quaternary log-ratios
     updated with the MBP4 rule of Kuo and Lai: incoming check messages are weighted by
     ``1/alpha`` in the posterior, and the message back to a check subtracts that check's
     previous output without the ``1/alpha`` factor (memory / inhibition for ``alpha < 1``).
+
+    The generalized MBP4 decoder (GMBP4) of Mostad et al. (arXiv:2603.05486) with their
+    scaling ``a`` is ``gc_method='map', mu=1/a, alpha=1, schedule='parallel'``.
 
     Parameters
     ----------
@@ -431,8 +495,18 @@ cdef class MbpLrbmsDecoder:
         Groupings of the rows of ``hx`` / ``hz`` (None, int ell, or list of row lists), as for
         :class:`LrbmsDecoder`.
     max_iter, mu, alpha, lrbms_order, schedule, llr_clip :
-        Iterations; min-sum normalisation at the checks; MBP4 normalisation at the variable
-        nodes; LRB-MS order; ``'serial'`` or ``'parallel'``; message clip.
+        Iterations; normalisation at the checks; MBP4 normalisation at the variable nodes;
+        LRB-MS order; ``'serial'`` or ``'parallel'``; message clip.
+    gc_method : str
+        ``'lrbms'`` (default), ``'trellis'``, ``'map'`` or ``'sogrand'``, as for
+        :class:`LrbmsDecoder`.
+    osd_method, osd_order :
+        OSD post-processing when the decoder does not converge, as for :class:`LrbmsDecoder`.
+        It runs on each CSS half whose hard decision does not match its syndrome, with the
+        binary marginals of the quaternary posteriors as soft input. Classical OSD-1 (all
+        weight-1 flips) is ``osd_method='osd_cs', osd_order=1``.
+    sogrand_list_size, sogrand_threshold, sogrand_max_queries, sogrand_intercept :
+        SOGRAND settings, as for :class:`LrbmsDecoder`.
     """
 
     def __cinit__(
@@ -449,8 +523,17 @@ cdef class MbpLrbmsDecoder:
         lrbms_order=0,
         schedule="serial",
         llr_clip=50.0,
+        gc_method="lrbms",
+        osd_method="off",
+        osd_order=0,
+        sogrand_list_size=4,
+        sogrand_threshold=1e-5,
+        sogrand_max_queries=0,
+        sogrand_intercept=-1,
     ):
         self.MEMORY_ALLOCATED = False
+        self.OSD_ALLOCATED = False
+        self._osd_used = False
         hx_csr = scipy.sparse.csr_matrix(ldpc.helpers.scipy_helpers.convert_to_binary_sparse(hx))
         hz_csr = scipy.sparse.csr_matrix(ldpc.helpers.scipy_helpers.convert_to_binary_sparse(hz))
         hx_csr.eliminate_zeros()
@@ -462,6 +545,8 @@ cdef class MbpLrbmsDecoder:
         self.qubit_count = hx_csr.shape[1]
         self.x_check_count = hx_csr.shape[0]
         self.z_check_count = hz_csr.shape[0]
+        self._hx_csr = hx_csr
+        self._hz_csr = hz_csr
         self._x_groups = self._resolve_groups(hx_csr, x_groups)
         self._z_groups = self._resolve_groups(hz_csr, z_groups)
         p_x, p_y, p_z = self._resolve_channel(error_rate, channel)
@@ -470,6 +555,8 @@ cdef class MbpLrbmsDecoder:
             raise ValueError("schedule must be 'serial' or 'parallel'.")
         if alpha <= 0:
             raise ValueError("alpha must be positive.")
+        cdef GcMethod method = _parse_gc_method(gc_method)
+        parsed_osd_method, parsed_osd_order = _parse_osd_method(osd_method, osd_order)
 
         cdef vector[vector[int]] hx_rows = _rows_of(hx_csr)
         cdef vector[vector[int]] hz_rows = _rows_of(hz_csr)
@@ -491,6 +578,7 @@ cdef class MbpLrbmsDecoder:
             float(mu),
             float(alpha),
             int(lrbms_order),
+            method,
             SERIAL if schedule_name == "serial" else PARALLEL,
             float(llr_clip),
         )
@@ -498,10 +586,36 @@ cdef class MbpLrbmsDecoder:
         self._mu = float(mu)
         self._syndrome_x.resize(self.x_check_count)
         self._syndrome_z.resize(self.z_check_count)
+        self.sogrand_settings = (sogrand_list_size, sogrand_threshold, sogrand_max_queries,
+                                 sogrand_intercept)
+
+        cdef OsdMethod om = <OsdMethod> parsed_osd_method
+        if om != OSD_OFF:
+            self._set_osd_channels(p_x, p_y, p_z)
+            self.pcm_x_part = _bp_sparse_of(hz_csr)
+            self.pcm_z_part = _bp_sparse_of(hx_csr)
+            self.osd_x_part = new OsdDecoderCpp(self.pcm_x_part[0], om, parsed_osd_order,
+                                                self._osd_channel_x)
+            self.osd_z_part = new OsdDecoderCpp(self.pcm_z_part[0], om, parsed_osd_order,
+                                                self._osd_channel_z)
+            self.OSD_ALLOCATED = True
 
     def __dealloc__(self):
+        if self.OSD_ALLOCATED:
+            del self.osd_x_part
+            del self.osd_z_part
+            del self.pcm_x_part
+            del self.pcm_z_part
         if self.MEMORY_ALLOCATED:
             del self.dec
+
+    def _set_osd_channels(self, p_x, p_y, p_z):
+        """Marginal flip probabilities of each CSS half (in place: OSD keeps a reference)."""
+        self._osd_channel_x.resize(self.qubit_count)
+        self._osd_channel_z.resize(self.qubit_count)
+        for i in range(self.qubit_count):
+            self._osd_channel_x[i] = p_x[i] + p_y[i]
+            self._osd_channel_z[i] = p_z[i] + p_y[i]
 
     def _resolve_groups(self, pcm, groups):
         if groups is None:
@@ -535,6 +649,8 @@ cdef class MbpLrbmsDecoder:
         cdef vector[double] p_y_vec = p_y
         cdef vector[double] p_z_vec = p_z
         self.dec.set_channel(p_x_vec, p_y_vec, p_z_vec)
+        if self.OSD_ALLOCATED:
+            self._set_osd_channels(p_x, p_y, p_z)
 
     def decode(self, syndrome_x, syndrome_z):
         """Decode; ``syndrome_x`` = hx @ e_z, ``syndrome_z`` = hz @ e_x. Returns ``(e_x, e_z)``."""
@@ -558,6 +674,21 @@ cdef class MbpLrbmsDecoder:
         for i in range(self.qubit_count):
             error_x[i] = self.dec.error_x[i]
             error_z[i] = self.dec.error_z[i]
+        self._osd_used = False
+        if self.dec.converge or not self.OSD_ALLOCATED:
+            return error_x, error_z
+
+        self.dec.marginal_llrs(self._llr_x, self._llr_z)
+        if not np.array_equal((self._hz_csr @ error_x) % 2, syndrome_z != 0):
+            self.osd_x_part.decode(self._syndrome_z, self._llr_x)
+            for i in range(self.qubit_count):
+                error_x[i] = self.osd_x_part.osdw_decoding[i]
+            self._osd_used = True
+        if not np.array_equal((self._hx_csr @ error_z) % 2, syndrome_x != 0):
+            self.osd_z_part.decode(self._syndrome_x, self._llr_z)
+            for i in range(self.qubit_count):
+                error_z[i] = self.osd_z_part.osdw_decoding[i]
+            self._osd_used = True
         return error_x, error_z
 
     @property
@@ -613,3 +744,30 @@ cdef class MbpLrbmsDecoder:
     @property
     def iterations(self) -> int:
         return self.dec.iterations
+
+    @property
+    def gc_method(self) -> str:
+        return _GC_METHOD_NAMES[self.dec.gc_method()]
+
+    @gc_method.setter
+    def gc_method(self, value) -> None:
+        self.dec.set_gc_method(_parse_gc_method(value))
+
+    @property
+    def osd_used(self) -> bool:
+        """True if the last decode fell back to OSD on at least one CSS half."""
+        return self._osd_used
+
+    @property
+    def sogrand_settings(self):
+        """(list_size, threshold, max_queries, intercept) of the SOGRAND rule."""
+        return self._sogrand
+
+    @sogrand_settings.setter
+    def sogrand_settings(self, value) -> None:
+        list_size, threshold, max_queries, intercept = value
+        if list_size < 1:
+            raise ValueError("The SOGRAND list size must be at least 1.")
+        self._sogrand = (int(list_size), float(threshold), int(max_queries), int(intercept))
+        self.dec.set_sogrand(self._sogrand[0], self._sogrand[1], self._sogrand[2],
+                             self._sogrand[3])

@@ -82,6 +82,59 @@ dec.converge
 dec.mu, dec.alpha = 1.0, 0.9                        # change the knobs between decodes (e.g. relay retries)
 ```
 
+`MbpLrbmsDecoder` also takes `gc_method` (any rule below) and an OSD fallback:
+`osd_method`, `osd_order`. When the decoder does not converge, OSD runs on each CSS half whose
+hard decision still violates its syndrome. Its soft input is the binary marginals of the
+quaternary posteriors. Classical OSD-1 (all weight-1 flips) is `osd_method="osd_cs",
+osd_order=1`, because `ldpc`'s `osd_cs` with order 0 is OSD-0.
+
+## Check-update rules (`gc_method`)
+
+Every decoder takes one of four rules for its generalized checks:
+
+| `gc_method` | rule | cost per check update |
+|---|---|---|
+| `"lrbms"` (default) | max-log over a least-reliable-basis candidate list of order `lrbms_order` | Gaussian elimination plus a short list |
+| `"trellis"` | exact max-log over the local coset (syndrome trellis) | 2^ℓ states per bit |
+| `"map"` | exact sum-product (BCJR) over the same trellis: the generalized check of Mostad, Rosnes and Lin (arXiv:2603.05486) | 2^ℓ states per bit |
+| `"sogrand"` | soft-output GRAND list decoding (Rapp et al., arXiv:2603.18318) | about 2^rank × list size pattern queries |
+
+For SOGRAND, `sogrand_list_size` (4), `sogrand_threshold` (1e-5), `sogrand_max_queries` (0, no
+limit) and `sogrand_intercept` (-1: automatic) follow the reference implementation. For
+`MbpLrbmsDecoder`, set them as `sogrand_settings = (list_size, threshold, max_queries,
+intercept)`. With single-row groups, `"map"` and `"sogrand"` use the box-plus rule, so
+`gc_method="map"` with `check_groups=None` is sum-product BP.
+
+## Decoders from related work
+
+`ldpc.lrbms_decoder` also provides the decoders of three related papers, for comparisons on the
+same footing:
+
+```python
+from ldpc.lrbms_decoder import GmbpDecoder, LeadDecoder, union_overlap_check_groups
+
+# Mostad et al.: MBP4, then MBP4 with exact MAP generalized checks, then OSD-1 (alpha = 1.6, 6 + 6 it.)
+gmbp = GmbpDecoder(hx, hz, error_rate=p, x_groups=x_vertex_groups, z_groups=z_vertex_groups,
+                   scaling=1.6, first_stage_iter=6, max_iter=6, osd_order=1)
+e_x, e_z = gmbp.decode(syndrome_x, syndrome_z)
+gmbp.stage                                         # 1, 2 or 3 (OSD) for the last shot
+
+# their Algorithm 1 for codes without local structure: blocks of r rows from random seed rows
+groups = union_overlap_check_groups(hz, r=8, seed=0)
+
+# Rapp et al. (SOGRAND), binary or X/Z-correlated: a gc_method of the existing decoders
+binary = LrbmsDecoder(hz, error_rate=2 * p / 3, check_groups=z_vertex_groups, gc_method="sogrand",
+                      ms_scaling_factor=1.0, schedule="parallel", max_iter=200)
+joint = MbpLrbmsDecoder(hx, hz, error_rate=p, x_groups=x_vertex_groups, z_groups=z_vertex_groups,
+                        gc_method="sogrand", mu=1.0, alpha=1.0, schedule="parallel", max_iter=200)
+
+# Xiao et al. (LEAD), one CSS half: BP-LSD per local code -> averaged prior -> global BP-OSD
+lead = LeadDecoder(hz, z_vertex_groups, error_rate=2 * p / 3, scaling=1.0)
+e_x = lead.decode(syndrome_z)
+```
+
+The comparison scripts and results are in [benchmarks/related_work.md](benchmarks/related_work.md).
+
 ## Sinter
 
 For stim/sinter workflows use `ldpc.sinter_decoders.SinterLrbmsDecoder`.
@@ -100,6 +153,11 @@ The tests check that:
 - The ensemble returns the cheapest valid member output, and `stop="escalate"` matches `"all"`
   whenever the first grouping fails.
 - The MBP4 + LRB-MS hybrid reproduces binary LRB-MS for pure X noise with α = 1.
+- The MAP rule equals brute-force sum-product marginals, and with single-row groups equals
+  `ldpc`'s product-sum BP.
+- SOGRAND matches an independent Python transcription of the algorithm, and equals the MAP rule
+  when the list is unlimited.
+- With OSD, the MBP decoder's output always satisfies both syndromes.
 
 ---
 [← back to the README](../README.md)

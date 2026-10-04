@@ -24,6 +24,11 @@
  *
  * Schedule: serial over GCs (layered: Z-type GCs, then X-type GCs, each iteration) or parallel.
  * With p_Y = p_Z = 0 and alpha = 1, the x-bit decisions coincide with binary LRB-MS on H_Z.
+ *
+ * The GC update is any method of lrbms.hpp. With gc_method = MAP, mu = 1 / a, alpha = 1 and the
+ * parallel schedule this is the generalized MBP4 decoder (GMBP4) of Mostad, Rosnes and Lin with
+ * their scaling a: both the posterior and the message to each GC carry the check outputs
+ * scaled by 1 / a.
  */
 
 #include "lrbms.hpp"
@@ -57,14 +62,14 @@ class MbpLrbmsDecoder {
                     const std::vector<std::vector<int>> &x_groups,
                     const std::vector<std::vector<int>> &z_groups, const std::vector<double> &p_x,
                     const std::vector<double> &p_y, const std::vector<double> &p_z, int max_iter,
-                    double mu, double alpha_, int lrbms_order, LrbmsSchedule schedule_,
-                    double llr_clip_)
+                    double mu, double alpha_, int lrbms_order, GcMethod gc_method,
+                    LrbmsSchedule schedule_, double llr_clip_)
         : qubit_count(qubit_count_),
           z_layer(static_cast<int>(hz_rows.size()), qubit_count_, hz_rows, z_groups,
-                  std::vector<double>(qubit_count_, 0.1), max_iter, mu, lrbms_order, LRBMS,
+                  std::vector<double>(qubit_count_, 0.1), max_iter, mu, lrbms_order, gc_method,
                   schedule_, llr_clip_),
           x_layer(static_cast<int>(hx_rows.size()), qubit_count_, hx_rows, x_groups,
-                  std::vector<double>(qubit_count_, 0.1), max_iter, mu, lrbms_order, LRBMS,
+                  std::vector<double>(qubit_count_, 0.1), max_iter, mu, lrbms_order, gc_method,
                   schedule_, llr_clip_),
           maximum_iterations(max_iter), alpha(alpha_), schedule(schedule_), llr_clip(llr_clip_) {
         if (alpha <= 0.0) {
@@ -101,6 +106,35 @@ class MbpLrbmsDecoder {
     void set_mu(double mu) {
         z_layer.ms_scaling_factor = mu;
         x_layer.ms_scaling_factor = mu;
+    }
+
+    GcMethod gc_method() const { return z_layer.gc_method; }
+
+    void set_gc_method(GcMethod gc_method) {
+        z_layer.gc_method = gc_method;
+        x_layer.gc_method = gc_method;
+    }
+
+    void set_sogrand(int list_size, double threshold, long long max_queries, int intercept) {
+        for (LrbmsDecoder *layer : {&z_layer, &x_layer}) {
+            layer->sogrand_list_size = list_size;
+            layer->sogrand_threshold = threshold;
+            layer->sogrand_max_queries = max_queries;
+            layer->sogrand_intercept = intercept;
+        }
+    }
+
+    // Binary LLRs of the x-part (seen by Z checks) and z-part (seen by X checks) of the
+    // current posteriors, e.g. as soft input for OSD on each CSS half.
+    void marginal_llrs(std::vector<double> &llr_x, std::vector<double> &llr_z) const {
+        llr_x.resize(qubit_count);
+        llr_z.resize(qubit_count);
+        for (int q = 0; q < qubit_count; q++) {
+            const double llr[3] = {posterior[PAULI_X][q], posterior[PAULI_Y][q],
+                                   posterior[PAULI_Z][q]};
+            llr_x[q] = to_binary_llr(llr, PAULI_Z);
+            llr_z[q] = to_binary_llr(llr, PAULI_X);
+        }
     }
 
     // Binary commutation LLR from quaternary log-ratios llr[0..2] (X, Y, Z):

@@ -1,0 +1,12 @@
+[
+  {"name": "MBP4+OSD-1 (r=1)", "kind": "mbp", "groups": "rows", "gc_method": "map",
+   "mu": 0.625, "alpha": 1.0, "max_iter": 6, "osd_order": 1},
+  {"name": "GMBP4+OSD-1 (r=12, Mostad et al.)", "kind": "gmbp", "groups": "vertex",
+   "scaling": 1.6, "first_stage_iter": 6, "max_iter": 6, "osd_order": 1},
+  {"name": "GMBP4 (r=12, no OSD, 25 it.)", "kind": "gmbp", "groups": "vertex",
+   "scaling": 1.6, "first_stage_iter": 6, "max_iter": 25, "osd_order": null},
+  {"name": "GMBP4+OSD-1 (r=4, H_A rows)", "kind": "gmbp", "groups": ["blocks", 4],
+   "scaling": 1.6, "first_stage_iter": 6, "max_iter": 6, "osd_order": 1},
+  {"name": "GMBP4+OSD-1 (r=3, H_B rows)", "kind": "gmbp", "groups": ["stride", 4],
+   "scaling": 1.6, "first_stage_iter": 6, "max_iter": 6, "osd_order": 1}
+]

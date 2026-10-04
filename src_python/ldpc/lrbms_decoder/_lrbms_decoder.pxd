@@ -12,6 +12,8 @@ cdef extern from "lrbms.hpp" namespace "ldpc::lrbms":
     cdef enum GcMethod:
         LRBMS = 0
         TRELLIS = 1
+        MAP = 2
+        SOGRAND = 3
 
     cdef enum LrbmsSchedule:
         PARALLEL = 0
@@ -38,6 +40,10 @@ cdef extern from "lrbms.hpp" namespace "ldpc::lrbms":
         LrbmsSchedule schedule
         double llr_clip
         int max_trellis_ell
+        int sogrand_list_size
+        double sogrand_threshold
+        long long sogrand_max_queries
+        int sogrand_intercept
         vector[uint8_t] decoding
         vector[double] log_prob_ratios
         vector[double] channel_probabilities
@@ -64,6 +70,7 @@ cdef extern from "mbp_lrbms.hpp" namespace "ldpc::lrbms":
                            double mu,
                            double alpha,
                            int lrbms_order,
+                           GcMethod gc_method,
                            LrbmsSchedule schedule,
                            double llr_clip) except +
         int maximum_iterations
@@ -75,6 +82,10 @@ cdef extern from "mbp_lrbms.hpp" namespace "ldpc::lrbms":
         bool converge
         void set_channel(vector[double]& p_x, vector[double]& p_y, vector[double]& p_z) except +
         void set_mu(double mu)
+        void set_gc_method(GcMethod gc_method)
+        GcMethod gc_method()
+        void set_sogrand(int list_size, double threshold, long long max_queries, int intercept)
+        void marginal_llrs(vector[double]& llr_x, vector[double]& llr_z)
         void decode(vector[uint8_t]& syndrome_x, vector[uint8_t]& syndrome_z) except +
 
 cdef class LrbmsDecoder:
@@ -98,4 +109,18 @@ cdef class MbpLrbmsDecoder:
     cdef vector[uint8_t] _syndrome_z
     cdef object _x_groups
     cdef object _z_groups
+    cdef object _hx_csr
+    cdef object _hz_csr
+    cdef object _sogrand
     cdef bool MEMORY_ALLOCATED
+    # OSD post-processing on each CSS half: x-part with H_Z, z-part with H_X
+    cdef bool OSD_ALLOCATED
+    cdef bool _osd_used
+    cdef BpSparse* pcm_x_part
+    cdef BpSparse* pcm_z_part
+    cdef OsdDecoderCpp* osd_x_part
+    cdef OsdDecoderCpp* osd_z_part
+    cdef vector[double] _osd_channel_x
+    cdef vector[double] _osd_channel_z
+    cdef vector[double] _llr_x
+    cdef vector[double] _llr_z

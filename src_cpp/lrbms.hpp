@@ -22,6 +22,17 @@
  *              list. With a single parity check per GC this is exactly min-sum.
  *  - TRELLIS : exact max-log (min-sum) over the full local coset via a syndrome
  *              trellis with 2^ell states. Reference / "exact MAP-MS" baseline.
+ *  - MAP     : exact sum-product (BCJR) over the same syndrome trellis: the
+ *              generalized-check update of Mostad, Rosnes and Lin (arXiv:2603.05486).
+ *              With one row per GC it is the box-plus rule, i.e. sum-product BP.
+ *  - SOGRAND : soft-output GRAND (Rapp et al., arXiv:2603.18318; Yuan et al. 2025).
+ *              Error patterns are queried in ORBGRAND order around the hard
+ *              decision until the list holds `sogrand_list_size` syndrome-consistent
+ *              patterns or the estimated probability that the true pattern is not
+ *              in the list drops below `sogrand_threshold`. That probability is
+ *              2^-rank times the probability mass not yet queried; it is spread over
+ *              the bits according to their input marginals. Output is extrinsic.
+ * MAP and SOGRAND use the box-plus rule for single-row GCs.
  */
 
 #include <vector>
@@ -38,7 +49,9 @@ namespace lrbms {
 
 enum GcMethod {
     LRBMS = 0,
-    TRELLIS = 1
+    TRELLIS = 1,
+    MAP = 2,
+    SOGRAND = 3
 };
 
 enum LrbmsSchedule {
@@ -72,6 +85,12 @@ public:
     LrbmsSchedule schedule;
     double llr_clip;
     int max_trellis_ell;
+
+    // SOGRAND settings (defaults follow Rapp et al.)
+    int sogrand_list_size = 4;
+    double sogrand_threshold = 1e-5;     // stop once P(true pattern not in list) < threshold
+    long long sogrand_max_queries = 0;   // 0: no limit
+    int sogrand_intercept = -1;          // ORBGRAND intercept; < 0: chosen from the input LLRs
 
     std::vector<uint8_t> decoding;
     std::vector<double> log_prob_ratios;
@@ -205,8 +224,10 @@ public:
     // ------------------------------------------------------------------ decode
     std::vector<uint8_t> &decode(const std::vector<uint8_t> &syndrome) {
         if ((int) syndrome.size() != check_count) throw std::invalid_argument("LrbmsDecoder: syndrome has wrong length");
-        if (gc_method == TRELLIS && max_group_size() > max_trellis_ell)
-            throw std::invalid_argument("LrbmsDecoder: TRELLIS method limited to groups with ell <= " + std::to_string(max_trellis_ell));
+        if ((gc_method == TRELLIS || gc_method == MAP) && max_group_size() > max_trellis_ell)
+            throw std::invalid_argument("LrbmsDecoder: TRELLIS and MAP methods limited to groups with ell <= " + std::to_string(max_trellis_ell));
+        if (gc_method == SOGRAND && max_group_size() > 63)
+            throw std::invalid_argument("LrbmsDecoder: SOGRAND method limited to groups with ell <= 63");
 
         int max_iter = maximum_iterations > 0 ? maximum_iterations : bit_count;
         converge = false;
@@ -279,8 +300,12 @@ public:
     // --------------------------------------------------------- GC updates
     void gc_update(const GeneralizedCheck &gc, const std::vector<uint8_t> &synd,
                    const std::vector<double> &in, std::vector<double> &out) {
-        if (gc.ell == 1) single_check_update(gc, synd, in, out);
+        const bool soft_rule = gc_method == MAP || gc_method == SOGRAND;
+        if (gc.ell == 1 && soft_rule) single_check_sum_product(gc, synd, in, out);
+        else if (gc.ell == 1) single_check_update(gc, synd, in, out);
         else if (gc_method == TRELLIS) trellis_update(gc, synd, in, out);
+        else if (gc_method == MAP) map_update(gc, synd, in, out);
+        else if (gc_method == SOGRAND) sogrand_update(gc, synd, in, out);
         else lrbms_update(gc, synd, in, out);
         for (auto &x: out) {
             x *= ms_scaling_factor;
@@ -667,6 +692,260 @@ public:
                 Bcur[st] = a0 < a1 ? a0 : a1;
             }
             Bcur.swap(Bnext);
+        }
+    }
+
+    // ------------------------------------------------------- sum-product rules
+    // 2 atanh(tanh(a/2) tanh(b/2)), stable for large |a|, |b|; +inf is the neutral element
+    static double box_plus(double a, double b) {
+        const double sign = ((a < 0.0) != (b < 0.0)) ? -1.0 : 1.0;
+        const double magnitude = std::min(std::fabs(a), std::fabs(b));
+        return sign * magnitude + std::log1p(std::exp(-std::fabs(a + b))) -
+               std::log1p(std::exp(-std::fabs(a - b)));
+    }
+
+    std::vector<double> prefix_bp, suffix_bp;
+
+    // exact sum-product for a single parity check (ell == 1)
+    void single_check_sum_product(const GeneralizedCheck &gc, const std::vector<uint8_t> &synd,
+                                  const std::vector<double> &lam, std::vector<double> &out) {
+        const int s = (int) gc.support.size();
+        const double sign = (synd[0] & 1) ? -1.0 : 1.0;
+        candidate_evaluations += s;
+        if (s == 1) {
+            out[0] = sign * llr_clip;   // weight-1 check: bit fully determined
+            return;
+        }
+        const double INF = std::numeric_limits<double>::infinity();
+        prefix_bp.resize(s + 1);
+        suffix_bp.resize(s + 1);
+        prefix_bp[0] = INF;
+        for (int k = 0; k < s; k++) prefix_bp[k + 1] = box_plus(prefix_bp[k], lam[k]);
+        suffix_bp[s] = INF;
+        for (int k = s - 1; k >= 0; k--) suffix_bp[k] = box_plus(suffix_bp[k + 1], lam[k]);
+        for (int k = 0; k < s; k++) out[k] = sign * box_plus(prefix_bp[k], suffix_bp[k + 1]);
+    }
+
+    std::vector<double> prob0, prob1, Fmap, Bmap, Bmap_next;
+
+    // Exact MAP (sum-product) over the local coset with a 2^ell-state syndrome trellis.
+    // Forward and backward vectors keep unit total mass (p0 + p1 = 1 at every step), so no
+    // rescaling is needed; on underflow the GC falls back to the max-log trellis.
+    void map_update(const GeneralizedCheck &gc, const std::vector<uint8_t> &synd,
+                    const std::vector<double> &lam, std::vector<double> &out) {
+        const int s = (int) gc.support.size();
+        const int L = gc.ell;
+        const size_t S = (size_t) 1 << L;
+        uint64_t target = 0;
+        for (int i = 0; i < L; i++) if (synd[i]) target |= (1ULL << i);
+
+        prob0.resize(s);
+        prob1.resize(s);
+        for (int k = 0; k < s; k++) {
+            const double e = std::exp(-std::fabs(lam[k]));
+            const double likely = 1.0 / (1.0 + e), unlikely = e / (1.0 + e);
+            prob0[k] = lam[k] >= 0.0 ? likely : unlikely;
+            prob1[k] = lam[k] >= 0.0 ? unlikely : likely;
+        }
+
+        // forward: Fmap[k][state] = P(bits 0..k-1 produce partial syndrome `state`)
+        Fmap.assign((size_t) (s + 1) * S, 0.0);
+        Fmap[0] = 1.0;
+        for (int k = 0; k < s; k++) {
+            const double *Fk = &Fmap[(size_t) k * S];
+            double *Fn = &Fmap[(size_t) (k + 1) * S];
+            const uint64_t cm = gc.col_masks[k];
+            const double p0 = prob0[k], p1 = prob1[k];
+            for (size_t st = 0; st < S; st++) {
+                const double v = Fk[st];
+                if (v == 0.0) continue;
+                Fn[st] += v * p0;
+                Fn[st ^ cm] += v * p1;
+            }
+        }
+
+        // backward: Bmap_next[state] = P(bits k+1..s-1 move `state` to the target syndrome)
+        Bmap_next.assign(S, 0.0);
+        Bmap_next[target] = 1.0;
+        Bmap.resize(S);
+        for (int k = s - 1; k >= 0; k--) {
+            const double *Fk = &Fmap[(size_t) k * S];
+            const uint64_t cm = gc.col_masks[k];
+            double P0 = 0.0, P1 = 0.0;   // coset probability with bit k = 0 / 1, own prior excluded
+            for (size_t st = 0; st < S; st++) {
+                const double f = Fk[st];
+                if (f == 0.0) continue;
+                P0 += f * Bmap_next[st];
+                P1 += f * Bmap_next[st ^ cm];
+            }
+            candidate_evaluations += (long long) S;
+            if (P0 > 0.0 && P1 > 0.0) out[k] = std::log(P0) - std::log(P1);
+            else if (P0 > 0.0) out[k] = llr_clip;
+            else if (P1 > 0.0) out[k] = -llr_clip;
+            else {
+                trellis_update(gc, synd, lam, out);   // underflow or inconsistent syndrome
+                return;
+            }
+            const double p0 = prob0[k], p1 = prob1[k];
+            for (size_t st = 0; st < S; st++) Bmap[st] = Bmap_next[st] * p0 + Bmap_next[st ^ cm] * p1;
+            Bmap.swap(Bmap_next);
+        }
+    }
+
+    // ------------------------------------------------------------------ SOGRAND
+    std::vector<int> orb_position;        // local position of each reliability rank (rank 1 = index 0)
+    std::vector<double> orb_reliability;  // |lambda| in rank order
+    std::vector<uint64_t> orb_mask;       // column syndrome mask in rank order
+    std::vector<int> orb_choice;          // ranks of the pattern being built
+    std::vector<int> sog_list_ranks, sog_list_ptr;
+    std::vector<double> sog_list_prob, sog_p0, sog_p1;
+    std::vector<uint8_t> sog_hard, sog_bits;
+    uint64_t sog_target_delta = 0;   // syndrome the flipped positions must produce
+    double sog_not_queried = 1.0;    // probability mass of patterns not queried yet
+    double sog_list_mass = 0.0;
+    double sog_scale = 1.0;          // 2^-rank: fraction of patterns that are syndrome-consistent
+    long long sog_queries = 0;
+
+    // Records one queried pattern; returns true when list decoding should stop.
+    bool sogrand_query(uint64_t flip_syndrome, double cost, int weight) {
+        sog_queries++;
+        const double prob = std::exp(-cost);
+        sog_not_queried -= prob;
+        if (flip_syndrome == sog_target_delta) {
+            sog_list_ranks.insert(sog_list_ranks.end(), orb_choice.begin(), orb_choice.begin() + weight);
+            sog_list_ptr.push_back((int) sog_list_ranks.size());
+            sog_list_prob.push_back(prob);
+            sog_list_mass += prob;
+            const double not_in_list = sog_scale * std::max(sog_not_queried, 0.0);
+            const double confidence = sog_list_mass / (sog_list_mass + not_in_list);
+            if (confidence > 1.0 - sogrand_threshold || (int) sog_list_prob.size() >= sogrand_list_size)
+                return true;
+        }
+        return sogrand_max_queries > 0 && sog_queries >= sogrand_max_queries;
+    }
+
+    // Queries every set of `weight` distinct ranks (1..n, increasing) with rank sum `rank_sum`,
+    // choosing slot `slot` onwards from ranks >= `lowest`, in lexicographic order.
+    bool orb_subsets(int slot, int weight, int lowest, long long rank_sum, uint64_t flip_syndrome,
+                     double cost) {
+        const int n = (int) orb_reliability.size();
+        const int rest = weight - slot - 1;
+        if (rest == 0) {
+            if (rank_sum < lowest || rank_sum > n) return false;
+            const int r = (int) rank_sum;
+            orb_choice[slot] = r;
+            return sogrand_query(flip_syndrome ^ orb_mask[r - 1], cost + orb_reliability[r - 1], weight);
+        }
+        const long long max_rest = (long long) rest * n - (long long) rest * (rest - 1) / 2;
+        const int first = (int) std::max<long long>(lowest, rank_sum - max_rest);
+        for (int r = first; r <= n; r++) {
+            const long long need = rank_sum - r;
+            const long long min_rest = (long long) rest * r + (long long) rest * (rest + 1) / 2;
+            if (need < min_rest) break;
+            orb_choice[slot] = r;
+            if (orb_subsets(slot + 1, weight, r + 1, need, flip_syndrome ^ orb_mask[r - 1],
+                            cost + orb_reliability[r - 1]))
+                return true;
+        }
+        return false;
+    }
+
+    // true if `syndrome` lies in the span of the GC's column masks (ell <= 63)
+    static bool in_column_span(const GeneralizedCheck &gc, uint64_t syndrome) {
+        uint64_t basis[64] = {0};
+        for (uint64_t v: gc.col_masks) {
+            for (int b = 63; b >= 0 && v; b--) {
+                if (!((v >> b) & 1ULL)) continue;
+                if (!basis[b]) { basis[b] = v; v = 0; }
+                else v ^= basis[b];
+            }
+        }
+        for (int b = 63; b >= 0 && syndrome; b--)
+            if ((syndrome >> b) & 1ULL) {
+                if (!basis[b]) return false;
+                syndrome ^= basis[b];
+            }
+        return true;
+    }
+
+    void sogrand_update(const GeneralizedCheck &gc, const std::vector<uint8_t> &synd,
+                        const std::vector<double> &lam, std::vector<double> &out) {
+        const int s = (int) gc.support.size();
+        uint64_t target = 0;
+        for (int i = 0; i < gc.ell; i++) if (synd[i]) target |= (1ULL << i);
+
+        sog_hard.resize(s);
+        uint64_t hard_syndrome = 0;
+        double pm_hard = 0.0;   // -log P(hard decision)
+        for (int k = 0; k < s; k++) {
+            sog_hard[k] = lam[k] > 0.0 ? 0 : 1;
+            if (sog_hard[k]) hard_syndrome ^= gc.col_masks[k];
+            pm_hard += std::log1p(std::exp(-std::fabs(lam[k])));
+        }
+        sog_target_delta = target ^ hard_syndrome;
+        if (!in_column_span(gc, sog_target_delta)) {   // inconsistent local syndrome: no information
+            std::fill(out.begin(), out.end(), 0.0);
+            return;
+        }
+
+        // reliability order (least reliable first)
+        orb_position.resize(s);
+        std::iota(orb_position.begin(), orb_position.end(), 0);
+        std::stable_sort(orb_position.begin(), orb_position.end(),
+                         [&](int a, int b) { return std::fabs(lam[a]) < std::fabs(lam[b]); });
+        orb_reliability.resize(s);
+        orb_mask.resize(s);
+        for (int r = 0; r < s; r++) {
+            orb_reliability[r] = std::fabs(lam[orb_position[r]]);
+            orb_mask[r] = gc.col_masks[orb_position[r]];
+        }
+        int intercept = sogrand_intercept;
+        if (intercept < 0) {   // 1-line ORBGRAND: fit the lower half of the sorted reliabilities
+            const long long half = std::llround((double) s / 2.0);
+            const double slope = half > 1 ? (orb_reliability[half - 1] - orb_reliability[0]) / (double) (half - 1) : 0.0;
+            intercept = slope > 0.0 ? (int) std::max<long long>(std::llround(orb_reliability[0] / slope - 1.0), 0) : 0;
+        }
+
+        orb_choice.resize(s);
+        sog_list_ranks.clear();
+        sog_list_ptr.assign(1, 0);
+        sog_list_prob.clear();
+        sog_not_queried = 1.0;
+        sog_list_mass = 0.0;
+        sog_scale = std::ldexp(1.0, -gc.rank);
+        sog_queries = 0;
+
+        bool stop = sogrand_query(0ULL, pm_hard, 0);
+        const long long max_weight = (long long) intercept * s + (long long) s * (s + 1) / 2;
+        for (long long wt = intercept + 1; !stop && wt <= max_weight; wt++) {
+            for (int w = 1; w <= s; w++) {
+                const long long rank_sum = wt - (long long) intercept * w;
+                if (rank_sum < (long long) w * (w + 1) / 2) break;
+                if (rank_sum > (long long) w * s - (long long) w * (w - 1) / 2) continue;
+                if (orb_subsets(0, w, 1, rank_sum, 0ULL, pm_hard)) {
+                    stop = true;
+                    break;
+                }
+            }
+        }
+        candidate_evaluations += sog_queries;
+
+        // bit marginals: list patterns plus the not-in-list mass split by the input marginals
+        const double eps = std::numeric_limits<double>::epsilon();
+        const double not_in_list = std::max(sog_scale * std::max(sog_not_queried, 0.0), eps);
+        sog_p0.assign(s, 0.0);
+        sog_p1.assign(s, 0.0);
+        for (size_t m = 0; m < sog_list_prob.size(); m++) {
+            sog_bits.assign(sog_hard.begin(), sog_hard.end());
+            for (int q = sog_list_ptr[m]; q < sog_list_ptr[m + 1]; q++) sog_bits[orb_position[sog_list_ranks[q] - 1]] ^= 1;
+            for (int k = 0; k < s; k++) (sog_bits[k] ? sog_p1[k] : sog_p0[k]) += sog_list_prob[m];
+        }
+        for (int k = 0; k < s; k++) {
+            double prior1 = 1.0 / (1.0 + std::exp(lam[k]));
+            prior1 = std::min(std::max(prior1, eps), 1.0 - eps);
+            const double p0 = sog_p0[k] + not_in_list * (1.0 - prior1);
+            const double p1 = sog_p1[k] + not_in_list * prior1;
+            out[k] = std::log(p0) - std::log(p1) - lam[k];
         }
     }
 };

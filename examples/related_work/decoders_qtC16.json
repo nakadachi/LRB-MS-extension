@@ -1,0 +1,63 @@
+[
+ {
+  "name": "BP+OSD-CS7",
+  "kind": "bposd",
+  "bp_method": "minimum_sum",
+  "msf": 0.8,
+  "osd_order": 7,
+  "max_iter": 100
+ },
+ {
+  "name": "MBP4+OSD-1",
+  "kind": "mbp",
+  "groups": "rows",
+  "gc_method": "map",
+  "mu": 0.625,
+  "alpha": 1.0,
+  "max_iter": 6,
+  "osd_order": 1
+ },
+ {
+  "name": "GMBP4+OSD-1 [Mostad et al.]",
+  "kind": "gmbp",
+  "groups": "vertex",
+  "scaling": 1.6,
+  "first_stage_iter": 6,
+  "max_iter": 6,
+  "osd_order": 1,
+  "max_shots": 20000
+ },
+ {
+  "name": "SOGRAND+XZ [Rapp et al.]",
+  "kind": "mbp",
+  "groups": "vertex",
+  "gc_method": "sogrand",
+  "mu": 1.0,
+  "alpha": 1.0,
+  "max_iter": 200,
+  "max_shots": 20000
+ },
+ {
+  "name": "LEAD [Xiao et al.]",
+  "kind": "lead",
+  "groups": "vertex",
+  "scaling": 1.0
+ },
+ {
+  "name": "LEAD \u03b1=0.01 [Xiao et al.]",
+  "kind": "lead",
+  "groups": "vertex",
+  "scaling": 0.01
+ },
+ {
+  "name": "MBP4+LRB-MS-8 (ours)",
+  "kind": "mbp",
+  "groups": "vertex",
+  "gc_method": "lrbms",
+  "t": 8,
+  "mu": 0.75,
+  "alpha": 1.0,
+  "schedule": "serial",
+  "max_iter": 100
+ }
+]
