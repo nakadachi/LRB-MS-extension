@@ -278,5 +278,45 @@
   "code": "qt432",
   "decoder": "MBP4+LRB-MS-8 (ours)",
   "p": 0.1
+ },
+ {
+  "fails": 0,
+  "shots": 200000,
+  "ms_per_shot": 0.7560800127899716,
+  "code": "qt432",
+  "decoder": "MBP4+LRB-MS-8+ladder (ours)",
+  "p": 0.06
+ },
+ {
+  "fails": 0,
+  "shots": 200000,
+  "ms_per_shot": 0.9175590421100435,
+  "code": "qt432",
+  "decoder": "MBP4+LRB-MS-8+ladder (ours)",
+  "p": 0.07
+ },
+ {
+  "fails": 8,
+  "shots": 200000,
+  "ms_per_shot": 1.0835786886150152,
+  "code": "qt432",
+  "decoder": "MBP4+LRB-MS-8+ladder (ours)",
+  "p": 0.08
+ },
+ {
+  "fails": 50,
+  "shots": 95600,
+  "ms_per_shot": 1.4514813924893657,
+  "code": "qt432",
+  "decoder": "MBP4+LRB-MS-8+ladder (ours)",
+  "p": 0.09
+ },
+ {
+  "fails": 50,
+  "shots": 10800,
+  "ms_per_shot": 2.790305750185161,
+  "code": "qt432",
+  "decoder": "MBP4+LRB-MS-8+ladder (ours)",
+  "p": 0.1
  }
 ]

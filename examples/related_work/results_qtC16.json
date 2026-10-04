@@ -278,5 +278,37 @@
   "code": "qtC16",
   "decoder": "MBP4+LRB-MS-8 (ours)",
   "p": 0.11
+ },
+ {
+  "fails": 3,
+  "shots": 200000,
+  "ms_per_shot": 1.0180858304450953,
+  "code": "qtC16",
+  "decoder": "MBP4+LRB-MS-8+ladder (ours)",
+  "p": 0.07
+ },
+ {
+  "fails": 13,
+  "shots": 200000,
+  "ms_per_shot": 1.1698709864101438,
+  "code": "qtC16",
+  "decoder": "MBP4+LRB-MS-8+ladder (ours)",
+  "p": 0.08
+ },
+ {
+  "fails": 34,
+  "shots": 200000,
+  "ms_per_shot": 1.4075531155600833,
+  "code": "qtC16",
+  "decoder": "MBP4+LRB-MS-8+ladder (ours)",
+  "p": 0.09
+ },
+ {
+  "fails": 50,
+  "shots": 52800,
+  "ms_per_shot": 1.8225866685223737,
+  "code": "qtC16",
+  "decoder": "MBP4+LRB-MS-8+ladder (ours)",
+  "p": 0.1
  }
 ]

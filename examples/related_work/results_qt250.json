@@ -286,5 +286,37 @@
   "code": "qt250",
   "decoder": "LEAD \u03b1=0.01 [Xiao et al.]",
   "p": 0.0906
+ },
+ {
+  "fails": 0,
+  "shots": 200000,
+  "ms_per_shot": 0.3292148685199614,
+  "code": "qt250",
+  "decoder": "MBP4+LRB-MS-8+ladder (ours)",
+  "p": 0.0392
+ },
+ {
+  "fails": 4,
+  "shots": 200000,
+  "ms_per_shot": 0.37548590759499434,
+  "code": "qt250",
+  "decoder": "MBP4+LRB-MS-8+ladder (ours)",
+  "p": 0.0518
+ },
+ {
+  "fails": 47,
+  "shots": 200000,
+  "ms_per_shot": 0.5197646165399559,
+  "code": "qt250",
+  "decoder": "MBP4+LRB-MS-8+ladder (ours)",
+  "p": 0.0685
+ },
+ {
+  "fails": 52,
+  "shots": 9200,
+  "ms_per_shot": 1.4393198630431638,
+  "code": "qt250",
+  "decoder": "MBP4+LRB-MS-8+ladder (ours)",
+  "p": 0.0906
  }
 ]
