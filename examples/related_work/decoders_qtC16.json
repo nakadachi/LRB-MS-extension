@@ -86,5 +86,32 @@
     1.0
    ]
   ]
+ },
+ {
+  "name": "SOGRAND+XZ+ladder [Rapp et al. + ours]",
+  "kind": "ladder",
+  "groups": "vertex",
+  "gc_method": "sogrand",
+  "schedule": "parallel",
+  "max_iter": 200,
+  "legs": [
+   [
+    1.0,
+    1.0
+   ],
+   [
+    0.6,
+    1.1
+   ],
+   [
+    0.7,
+    1.1
+   ],
+   [
+    0.7,
+    1.0
+   ]
+  ],
+  "max_shots": 20000
  }
 ]
