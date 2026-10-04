@@ -5,6 +5,8 @@ a grid; legs are added greedily by (rescues - new wrong convergences) among the 
 unconverged. Prints the failure breakdown of the base leg and the chosen ladder as JSON legs.
 
 Usage: python tune_ladder.py --code qt432 --p 0.10 --mu 0.75 --shots 8000
+       python tune_ladder.py --code qt432 --p 0.10 --mu 1.0 --max-iter 200 \
+           --gc-method sogrand --schedule parallel
 """
 
 import argparse
@@ -19,16 +21,20 @@ GRID_MU = (0.6, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1.0)
 GRID_ALPHA = (0.8, 0.9, 1.0, 1.1, 1.2)
 
 
+# check rule and schedule of the decoder being laddered (set from the command line before the
+# worker pool forks)
+SETTINGS = {"gc_method": "lrbms", "schedule": "serial"}
+
+
 def base_spec(mu, max_iter):
     return {
         "kind": "mbp",
         "groups": "vertex",
-        "gc_method": "lrbms",
         "t": 8,
         "mu": mu,
         "alpha": 1.0,
-        "schedule": "serial",
         "max_iter": max_iter,
+        **SETTINGS,
     }
 
 
@@ -81,7 +87,10 @@ def main():
     parser.add_argument("--shots", type=int, default=8000)
     parser.add_argument("--legs", type=int, default=3)
     parser.add_argument("--workers", type=int, default=4)
+    parser.add_argument("--gc-method", default="lrbms")
+    parser.add_argument("--schedule", default="serial")
     args = parser.parse_args()
+    SETTINGS.update(gc_method=args.gc_method, schedule=args.schedule)
     seed = zlib.crc32(f"{args.code}|{args.p}tune-ladder".encode())
     w = args.workers
     with mp.Pool(w) as pool:
