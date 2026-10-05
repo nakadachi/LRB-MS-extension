@@ -94,5 +94,29 @@
   "code": "qt250",
   "decoder": "SOGRAND+XZ [Rapp et al.]",
   "p": 0.0169
+ },
+ {
+  "fails": 30,
+  "shots": 14240000,
+  "ms_per_shot": 0.2026791193501213,
+  "code": "qt250",
+  "decoder": "MBP4+LRB-MS-8 (ours)",
+  "p": 0.0097
+ },
+ {
+  "fails": 30,
+  "shots": 19840000,
+  "ms_per_shot": 0.25168366760956806,
+  "code": "qt250",
+  "decoder": "MBP4+LRB-MS-12 (ours)",
+  "p": 0.0097
+ },
+ {
+  "fails": 0,
+  "shots": 24000000,
+  "ms_per_shot": 0.25304393359522237,
+  "code": "qt250",
+  "decoder": "MBP4+LRB-MS-12+ladder (ours)",
+  "p": 0.0097
  }
 ]
