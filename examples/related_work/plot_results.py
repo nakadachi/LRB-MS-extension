@@ -25,6 +25,7 @@ STYLES = {
     "GMBP4+OSD-1 [Mostad et al.]": ("#eb6834", "s", "-"),
     "SOGRAND+XZ [Rapp et al.]": ("#1baf7a", "D", "-"),
     "SOGRAND [Rapp et al.]": ("#1baf7a", "D", "--"),
+    "SOGRAND+XZ+ladder [Rapp et al. + ours]": ("#1baf7a", "*", ":"),
     "LEAD [Xiao et al.]": ("#eda100", "^", "-"),
     "LEAD α=0.01 [Xiao et al.]": ("#eda100", "^", "--"),
     "MBP4+OSD-1": ("#e87ba4", "v", "--"),

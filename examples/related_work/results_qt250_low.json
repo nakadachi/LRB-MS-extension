@@ -118,5 +118,13 @@
   "code": "qt250",
   "decoder": "MBP4+LRB-MS-12+ladder (ours)",
   "p": 0.0097
+ },
+ {
+  "fails": 4,
+  "shots": 24000000,
+  "ms_per_shot": 0.39439705198209973,
+  "code": "qt250",
+  "decoder": "SOGRAND+XZ [Rapp et al.]",
+  "p": 0.0097
  }
 ]

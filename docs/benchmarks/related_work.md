@@ -177,6 +177,64 @@ Same test samples as above (the ladder ran up to 200 000 shots):
   at p = 0.0906 and is 2.5–4.7× faster. GMBP4 keeps a small edge at p ≤ 0.0518, where both
   rarely fail.
 
+### SOGRAND+XZ with the same ladder
+
+The ladder works for any check rule, so we also gave SOGRAND+XZ one, tuned the same way
+(`tune_ladder.py --gc-method sogrand`). Its failures are also almost all non-convergence, and a
+damped retry rescues most of them. Its first legs are (μ, α) = (0.8, 1.1) on [[250]], (0.6, 1)
+on [[432]] and (0.6, 1.1) on C16, while plain SOGRAND runs undamped. This makes it
+3–120× better than plain SOGRAND+XZ. Ladder against ladder, on the same samples:
+
+| code, p | SOGRAND+XZ | SOGRAND+XZ + ladder | **MBP4+LRB-MS + ladder** | LRB-MS ladder vs SOGRAND ladder |
+|---|---|---|---|---|
+| [[432,16]], 0.08 | 6.0e-3, 27 ms | 1.7e-4 (2 fails), 28 ms | **4.0e-5, 1.1 ms** | ≈ 4× fewer failures, 26× faster |
+| [[432,16]], 0.09 | 2.0e-2, 43 ms | 2.2e-3, 48 ms | **5.2e-4, 1.5 ms** | 4.2×, 33× |
+| [[432,16]], 0.10 | 5.2e-2, 71 ms | 1.2e-2, 108 ms | **4.6e-3, 2.8 ms** | 2.5×, 39× |
+| C16, 0.09 | 4.7e-2, 10 ms | 1.1e-3, 11 ms | **1.7e-4, 1.4 ms** | 6.5×, 7.5× |
+| C16, 0.10 | 6.2e-2, 15 ms | 5.5e-3, 18 ms | **9.5e-4, 1.8 ms** | 5.9×, 9.9× |
+| C16, 0.11 | 0.15, 29 ms | 2.4e-2, 41 ms | **3.7e-3, 3.0 ms** | 6.6×, 13× |
+| [[250,10,15]], 0.0518 | 1.1e-3, 0.90 ms | 3.0e-5, 0.90 ms | 2.0e-5, 0.38 ms | tie, 2.4× |
+| [[250,10,15]], 0.0685 | 7.1e-3, 1.4 ms | 5.3e-4, 1.6 ms | **2.4e-4, 0.52 ms** | 2.2×, 3.1× |
+| [[250,10,15]], 0.0906 | 3.4e-2, 4.2 ms | 1.1e-2, 5.5 ms | **5.7e-3, 1.4 ms** | 2.0×, 3.8× |
+
+### Error floor at low noise
+
+A single pass of MBP4 + LRB-MS has an error floor that SOGRAND does not, visible on
+[[250,10,15]] below p ≈ 0.03. With the relay ladder it disappears. The runs reach the published
+SOGRAND points, on the same samples for all decoders (`run_low.sh`, `run_p0097.sh`):
+
+| p | LRB-MS-8, one pass | LRB-MS-12, one pass | **LRB-MS-12 + ladder** | SOGRAND+XZ (ours) | SOGRAND+XZ (paper) |
+|---|---|---|---|---|---|
+| 0.0296 | 3.9e-5 | 2.6e-5 | **1.0e-6** (1 / 1M) | 1.7e-5 | 1.6e-5 |
+| 0.0224 | 1.5e-5 | 5.0e-6 | **0** (/ 2M) | 5.0e-6 | 5.2e-6 |
+| 0.0169 | 6.5e-6 | 4.8e-6 | **0** (/ 4M) | 1.8e-6 | 1.6e-6 |
+| 0.0097 | 2.1e-6 | 1.5e-6 | **0** (/ 24M; < 1.3e-7 at 95%) | 1.7e-7 (4 / 24M) | 2.1e-7 |
+| time per shot | 0.18–0.25 ms | 0.25–0.31 ms | 0.25–0.31 ms | 0.39–0.51 ms | |
+
+**Why there is a floor.** `floor_probe.py` collected the 36 failures of single-pass LRB-MS-8
+in 2 million shots at p = 0.0224:
+- every one was a non-convergence, of a light error (mostly weight 5–7 on a distance-15 code);
+- none converged to a wrong logical, so a minimum-weight decoder would decode them all.
+
+The rule that fixes a failure shows its cause. Re-decoding the same 36 errors:
+- exact max-log trellis at the same μ: 35 decoded;
+- LRB-MS with list order t = 10, 12 or 19: 32, 36 and 36 decoded;
+- SOGRAND, OSD-CS7 or the relay ladder: all 36 decoded.
+
+So the culprit is the truncated LRB candidate list, not max-log or the message passing. With
+order t, pairs of flips are only tried among the t least reliable of the 19 non-basis
+positions of each 25-bit local code. When the true local pattern is outside the list, the best
+competitor costs come out too high, the extrinsic messages become overconfident, and the
+decoder locks into a trapping set. SOGRAND avoids this by construction: its soft output mixes in
+the probability that the true pattern is missing from the list.
+
+A larger list (t = 12, +12% time) helps at moderate noise (3× at p = 0.0224) but barely at
+p ≈ 0.01, where it still sits 9× above SOGRAND (1.5e-6 against 1.7e-7). Retrying with a slightly different (μ, α) pulls the decoder out of the
+trapping set: the ladder had no failures in 30 million shots at p ≤ 0.0224. It fires on fewer
+than 1 shot in 10 000 there, so it costs nothing measurable, and the result is about 35% faster
+than SOGRAND+XZ. **Use the ladder (or an OSD fallback) for low-noise operation; a single pass
+of LRB-MS is not floor-free.**
+
 ### Caveats
 
 - LRB-MS's μ and ladder legs were tuned per code on separate samples. The other decoders use their papers'
@@ -203,6 +261,7 @@ Same test samples as above (the ladder ran up to 200 000 shots):
 | MBP4+MAP, 100 it. (exact GC) | 2.9e-04 | 3.7e-04 | 1.5e-03 | 1.8e-02 |
 | LEAD α=0.01 [Xiao et al.] | 5.7e-03 | 2.7e-02 | 1.2e-01 | 4.2e-01 |
 | MBP4+LRB-MS-8+ladder (ours) | 0 (/200000) | 2.0e-05 | 2.3e-04 | 5.7e-03 |
+| SOGRAND+XZ+ladder [Rapp et al. + ours] | 0 (/100000) | 3.0e-05 | 5.3e-04 | 1.1e-02 |
 
 **[[250,10,15]]**, mean decode time per shot
 
@@ -218,6 +277,7 @@ Same test samples as above (the ladder ran up to 200 000 shots):
 | MBP4+MAP, 100 it. (exact GC) | 0.68 ms | 0.78 ms | 1.11 ms | 2.01 ms |
 | LEAD α=0.01 [Xiao et al.] | 1.52 ms | 1.96 ms | 2.82 ms | 4.58 ms |
 | MBP4+LRB-MS-8+ladder (ours) | 0.33 ms | 0.38 ms | 0.52 ms | 1.44 ms |
+| SOGRAND+XZ+ladder [Rapp et al. + ours] | 0.66 ms | 0.90 ms | 1.62 ms | 5.49 ms |
 
 **[[432,16,28]]**, logical error rate
 
@@ -231,6 +291,7 @@ Same test samples as above (the ladder ran up to 200 000 shots):
 | LEAD α=0.01 [Xiao et al.] | 1.5e-01 | 3.0e-01 | 5.8e-01 | 7.7e-01 | 9.1e-01 |
 | MBP4+LRB-MS-8 (ours) | 1.0e-05 | 3.0e-05 | 1.6e-04 | 1.5e-03 | 9.8e-03 |
 | MBP4+LRB-MS-8+ladder (ours) | 0 (/200000) | 0 (/200000) | 4.0e-05 | 5.2e-04 | 4.6e-03 |
+| SOGRAND+XZ+ladder [Rapp et al. + ours] | 8.3e-05 | 8.3e-05 | 1.7e-04 | 2.2e-03 | 1.2e-02 |
 
 **[[432,16,28]]**, mean decode time per shot
 
@@ -244,6 +305,7 @@ Same test samples as above (the ladder ran up to 200 000 shots):
 | LEAD α=0.01 [Xiao et al.] | 11.33 ms | 21.84 ms | 32.08 ms | 46.74 ms | 56.53 ms |
 | MBP4+LRB-MS-8 (ours) | 0.73 ms | 0.86 ms | 1.07 ms | 1.48 ms | 2.17 ms |
 | MBP4+LRB-MS-8+ladder (ours) | 0.76 ms | 0.92 ms | 1.08 ms | 1.45 ms | 2.79 ms |
+| SOGRAND+XZ+ladder [Rapp et al. + ours] | 17.94 ms | 22.64 ms | 28.29 ms | 48.31 ms | 108.41 ms |
 
 **[[576,32,≤16]] C16**, logical error rate
 
@@ -257,6 +319,7 @@ Same test samples as above (the ladder ran up to 200 000 shots):
 | LEAD α=0.01 [Xiao et al.] | 7.0e-02 | 2.8e-01 | 4.7e-01 | 7.8e-01 | 9.0e-01 |
 | MBP4+LRB-MS-8 (ours) | 3.0e-05 | 9.0e-05 | 3.9e-04 | 1.6e-03 | 7.8e-03 |
 | MBP4+LRB-MS-8+ladder (ours) | 1.5e-05 | 6.5e-05 | 1.7e-04 | 9.5e-04 | 3.7e-03 |
+| SOGRAND+XZ+ladder [Rapp et al. + ours] | 1.0e-04 | 0 (/20000) | 1.1e-03 | 5.5e-03 | 2.4e-02 |
 
 **[[576,32,≤16]] C16**, mean decode time per shot
 
@@ -270,6 +333,7 @@ Same test samples as above (the ladder ran up to 200 000 shots):
 | LEAD α=0.01 [Xiao et al.] | 8.62 ms | 18.01 ms | 26.10 ms | 43.16 ms | 54.74 ms |
 | MBP4+LRB-MS-8 (ours) | 1.00 ms | 1.15 ms | 1.36 ms | 1.62 ms | 2.31 ms |
 | MBP4+LRB-MS-8+ladder (ours) | 1.02 ms | 1.17 ms | 1.41 ms | 1.82 ms | 3.03 ms |
+| SOGRAND+XZ+ladder [Rapp et al. + ours] | 5.58 ms | 7.35 ms | 10.64 ms | 17.98 ms | 40.58 ms |
 
 **BB [[144,12,12]]**, logical error rate
 

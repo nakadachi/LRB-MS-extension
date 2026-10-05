@@ -70,6 +70,11 @@ Logical error rate and mean decode time per shot, one core.
   instead costs 0–31% extra time. With it, LRB-MS has 6–10× fewer failures than GMBP4+OSD-1 on
   [[432,16]] and 5.6–15× fewer on C16 (p ≥ 0.09), and ties or beats it on [[250,10,15]] at
   p ≥ 0.0685 ([details](docs/benchmarks/related_work.md#post-processing-osd-1-against-a-relay-ladder)).
+- **Error floor:** a single pass of LRB-MS has a floor at low noise. On [[250,10,15]] at
+  p = 0.0097 it fails 1.5–2.1e-6, against 1.7e-7 for SOGRAND+XZ. The cause is the truncated
+  candidate list locking light errors into trapping sets. With the relay ladder there were no
+  failures in 24 million shots, at about two thirds of SOGRAND's time
+  ([details](docs/benchmarks/related_work.md#error-floor-at-low-noise)).
 
 ### BB codes: the grouping ensemble beats BP+OSD, and the gap grows with code size
 
