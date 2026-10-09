@@ -1,6 +1,6 @@
-"""Compare stopping rules for the LRB-MS grouping ensemble from one recorded pass.
+"""Compare stopping rules for the Qulid grouping ensemble from one recorded pass.
 
-For every shot, each of K groupings is decoded with LRB-MS alone (time, output, converged);
+For every shot, each of K groupings is decoded with Qulid alone (time, output, converged);
 members that do not converge are also decoded with the OSD fallback (extra time, output).
 Each policy is then replayed on the same records, so all policies see identical member
 outputs and their costs are the summed member times they would have used.
@@ -25,7 +25,7 @@ MAX_ITER = int(sys.argv[4]) if len(sys.argv) > 4 else 100
 
 
 def record_chunk(args):
-    """Per shot: the true error weight and, per member, its LRB-MS and OSD results."""
+    """Per shot: the true error weight and, per member, its Qulid and OSD results."""
     name, p, shots, seed = args
     code = get_code(name)
     hz, lz = code.hz, code.lz.astype(np.int64)
@@ -61,7 +61,7 @@ def record_chunk(args):
             if not converged:
                 start = time.perf_counter()
                 osd_output = with_osd[index].decode(syndrome).astype(np.uint8)
-                # OSD time on top of the LRB-MS pass
+                # OSD time on top of the Qulid pass
                 member["t_osd"] = max(time.perf_counter() - start - lrb_seconds, 0.0)
                 member["w_osd"] = int(osd_output.sum())
                 residual = (osd_output + error) % 2
@@ -168,7 +168,7 @@ def main():
     single = np.mean([single_seconds(record) for record in records])
     print(
         f"{name} p={p} max_iter={MAX_ITER} shots={len(records)}  "
-        f"(single LRB-MS+OSD: {1e3 * single:.2f} ms/shot)"
+        f"(single Qulid+OSD: {1e3 * single:.2f} ms/shot)"
     )
     for label, policy in policies.items():
         outcomes = [policy(record) for record in records]

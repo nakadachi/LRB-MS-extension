@@ -99,7 +99,7 @@ def test_hamming_single_error():
 # ----------------------------------------------------- equivalence / exactness
 
 def test_single_row_groups_equal_min_sum_bp():
-    """With one row per generalized check (parallel schedule), LRB-MS is exactly min-sum BP."""
+    """With one row per generalized check (parallel schedule), Qulid is exactly min-sum BP."""
     H = random_ldpc(30, 60, 3, 1)
     p = 0.05
     rng = np.random.default_rng(2)
@@ -139,7 +139,7 @@ def test_trellis_is_exact_maxlog(seed):
 
 @pytest.mark.parametrize("seed", range(6))
 def test_lrbms_exact_when_list_covers_coset(seed):
-    """If n - rank <= 2 and the order covers all MRB pairs, the LRB-MS list is the whole coset."""
+    """If n - rank <= 2 and the order covers all MRB pairs, the Qulid list is the whole coset."""
     rng = np.random.default_rng(100 + seed)
     n = 7
     while True:
@@ -306,7 +306,7 @@ def test_group_helpers():
 # ------------------------------------------------------------- performance
 
 def test_bb144_generalized_checks_do_not_hurt():
-    """Code-capacity X errors on BB [[144,12,12]]: grouped LRB-MS should match or beat min-sum."""
+    """Code-capacity X errors on BB [[144,12,12]]: grouped Qulid should match or beat min-sum."""
     H = bb_code_144()
     n = H.shape[1]
     p = 0.06
@@ -497,7 +497,7 @@ def test_ensemble_escalate_mode():
             assert np.array_equal(d, run_all.decode(s))
 
 
-# ------------------------------------------------------------- MBP4 + LRB-MS hybrid
+# ------------------------------------------------------------- MBP4 + Qulid hybrid
 
 
 def _bb144_css():
@@ -615,3 +615,11 @@ def test_mbp_osd_makes_every_output_syndrome_valid():
     decoder.gc_method = "sogrand"
     assert decoder.gc_method == "sogrand"
 
+
+
+def test_qulid_aliases():
+    from ldpc.lrbms_decoder import MbpLrbmsDecoder, MbpQulidDecoder, QulidDecoder
+
+    assert QulidDecoder is LrbmsDecoder and MbpQulidDecoder is MbpLrbmsDecoder
+    decoder = QulidDecoder(np.array([[1, 1, 0], [0, 1, 1]]), error_rate=0.1, gc_method="qulid")
+    assert decoder.gc_method == "lrbms"

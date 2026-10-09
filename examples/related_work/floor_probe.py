@@ -6,7 +6,7 @@ Pauli weight of the true error and of the output, and whether the output is ligh
 true error (then even a minimum-weight decoder would fail on it).
 
 Usage: python floor_probe.py --code qt250 --p 0.0224 --shots 4000000 \
-           --decoder decoders_floor.json:"MBP4+LRB-MS-8" --others decoders_floor.json
+           --decoder decoders_floor.json:"MBP4+Qulid-8" --others decoders_floor.json
 """
 
 import argparse

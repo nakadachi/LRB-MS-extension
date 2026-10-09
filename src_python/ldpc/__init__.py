@@ -9,7 +9,7 @@ from ldpc.bp_decoder import SoftInfoBpDecoder
 from ldpc.belief_find_decoder import BeliefFindDecoder
 from ldpc.sinter_decoders import SinterBpOsdDecoder
 from ldpc.union_find_decoder import UnionFindDecoder
-from ldpc.lrbms_decoder import LrbmsDecoder
+from ldpc.lrbms_decoder import LrbmsDecoder, QulidDecoder
 from ldpc.sinter_decoders import SinterLrbmsDecoder
 
 # Legacy syntax

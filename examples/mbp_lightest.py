@@ -1,4 +1,4 @@
-"""Relay ladder vs 'lightest of several (mu, alpha) legs' for the MBP4 + LRB-MS hybrid.
+"""Relay ladder vs 'lightest of several (mu, alpha) legs' for the MBP4 + Qulid hybrid.
 
 The stopping ladder fires the next leg only when the previous one did not converge. The
 'lightest of k' variant runs the first k legs on every shot and keeps the syndrome-valid output

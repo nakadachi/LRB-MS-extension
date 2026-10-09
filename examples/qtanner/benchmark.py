@@ -1,4 +1,4 @@
-"""Code-capacity benchmark of LRB-MS vs BP / BP+OSD on quantum Tanner codes.
+"""Code-capacity benchmark of Qulid vs BP / BP+OSD on quantum Tanner codes.
 
 Noise model: i.i.d. bit flips (X errors) with probability ``p`` on every qubit.
 The syndrome ``s = H_Z e`` is decoded with ``H_Z``; a shot fails if the residual

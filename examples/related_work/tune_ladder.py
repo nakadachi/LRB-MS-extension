@@ -1,4 +1,4 @@
-"""Choose relay-ladder legs for MBP4 + LRB-MS on tuning samples (seed salt "tune").
+"""Choose relay-ladder legs for MBP4 + Qulid on tuning samples (seed salt "tune").
 
 The base leg decodes every shot. Its non-converged shots are retried with every (mu, alpha) on
 a grid; legs are added greedily by (rescues - new wrong convergences) among the shots still

@@ -1,4 +1,4 @@
-# LRB-MS on bivariate bicycle codes
+# Qulid on bivariate bicycle codes
 
 The results and findings are in the [main README](../../docs/benchmarks/bb_codes.md).
 

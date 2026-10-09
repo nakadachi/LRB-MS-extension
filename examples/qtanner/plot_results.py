@@ -14,8 +14,8 @@ SURFACE, INK, INK2, GRID = "#fcfcfb", "#0b0b0b", "#52514e", "#e4e3df"
 SLOTS = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#4a3aa7", "#e34948"]
 
 # greedy overlap grouping with ell=9 recovers exactly the vertex groups on these codes,
-# so its curves coincide with "LRB-MS-8 (vertex GCs)"; it stays in the table only
-PLOT_EXCLUDE = {"LRB-MS-8 (greedy ell=9)"}
+# so its curves coincide with "Qulid-8 (vertex GCs)"; it stays in the table only
+PLOT_EXCLUDE = {"Qulid-8 (greedy ell=9)"}
 
 
 def wilson(failures, shots, z=1.96):

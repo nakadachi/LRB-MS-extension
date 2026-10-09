@@ -1,4 +1,4 @@
-# Benchmark: (μ, α) relay ladders with the MBP4 + LRB-MS hybrid
+# Benchmark: (μ, α) relay ladders with the MBP4 + Qulid hybrid
 
 A relay ladder retries a decode with new (μ, α) settings only when the previous attempt did not
 converge, so the average cost barely changes. We tested ladders on BB [[288,12,18]] under

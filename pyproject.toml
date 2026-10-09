@@ -34,7 +34,7 @@ Documentation = "https://software.roffe.eu/ldpc"
 where = ["src_python"]  
 include = ["ldpc","ldpc.*"]
 
-# Formatting and lint rules for the Python code added by the LRB-MS extension
+# Formatting and lint rules for the Python code added by the Qulid extension
 # (run: ruff format <files> && ruff check <files>).
 [tool.ruff]
 line-length = 100

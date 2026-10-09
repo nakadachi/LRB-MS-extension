@@ -10,7 +10,7 @@
   "osd_order": 40
  },
  {
-  "name": "LRB-MS greedy8 +OSD-CS7",
+  "name": "Qulid greedy8 +OSD-CS7",
   "kind": "lrbms",
   "groups": [
    "greedy",

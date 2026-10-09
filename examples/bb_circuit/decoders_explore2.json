@@ -15,7 +15,7 @@
   "bp_method": "product_sum"
  },
  {
-  "name": "LRB-MS greedy8 msf0.625 +OSD",
+  "name": "Qulid greedy8 msf0.625 +OSD",
   "kind": "lrbms",
   "groups": [
    "greedy",
@@ -26,7 +26,7 @@
   "osd_order": 7
  },
  {
-  "name": "LRB-MS greedy8 msf0.9 +OSD",
+  "name": "Qulid greedy8 msf0.9 +OSD",
   "kind": "lrbms",
   "groups": [
    "greedy",

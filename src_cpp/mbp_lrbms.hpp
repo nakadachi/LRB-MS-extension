@@ -2,7 +2,7 @@
 #define LDPC_MBP_LRBMS_HPP
 
 /**
- * MBP4 + LRB-MS: quaternary memory-BP variable nodes with LRB-MS generalized checks.
+ * MBP4 + Qulid: quaternary memory-BP variable nodes with Qulid generalized checks.
  *
  * CSS code with X checks H_X and Z checks H_Z. Each qubit n carries the quaternary
  * log-ratios Gamma_n^W = ln P(I)/P(W) for W in {X, Y, Z} (index 0, 1, 2).
@@ -10,7 +10,7 @@
  * Check layers. A Z-type check only sees whether the error E_n anticommutes with Z, i.e. the
  * x-bit of E_n (E_n in {X, Y}); an X-type check only sees the z-bit (E_n in {Z, Y}). Rows of H_Z
  * are grouped into generalized checks (GCs) acting on x-bits, rows of H_X into GCs acting on
- * z-bits. Each GC is updated with the binary LRB-MS rule of lrbms.hpp, whose output is scaled
+ * z-bits. Each GC is updated with the binary Qulid rule of lrbms.hpp, whose output is scaled
  * by mu (the min-sum normalisation).
  *
  * Variable node (MBP4, Kuo and Lai). With Delta_{c->n} the binary output of GC c,
@@ -23,7 +23,7 @@
  * where P commutes with the check type and W1, W2 anticommute.
  *
  * Schedule: serial over GCs (layered: Z-type GCs, then X-type GCs, each iteration) or parallel.
- * With p_Y = p_Z = 0 and alpha = 1, the x-bit decisions coincide with binary LRB-MS on H_Z.
+ * With p_Y = p_Z = 0 and alpha = 1, the x-bit decisions coincide with binary Qulid on H_Z.
  *
  * The GC update is any method of lrbms.hpp. With gc_method = MAP, mu = 1 / a, alpha = 1 and the
  * parallel schedule this is the generalized MBP4 decoder (GMBP4) of Mostad, Rosnes and Lin with

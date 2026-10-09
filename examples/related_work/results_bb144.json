@@ -28,7 +28,7 @@
   "shots": 100000,
   "ms_per_shot": 0.14924566650112867,
   "code": "bb144",
-  "decoder": "MBP4+LRB-MS-6 (ours)",
+  "decoder": "MBP4+Qulid-6 (ours)",
   "p": 0.04
  },
  {
@@ -60,7 +60,7 @@
   "shots": 100000,
   "ms_per_shot": 0.1835027165093561,
   "code": "bb144",
-  "decoder": "MBP4+LRB-MS-6 (ours)",
+  "decoder": "MBP4+Qulid-6 (ours)",
   "p": 0.05
  },
  {
@@ -92,7 +92,7 @@
   "shots": 34400,
   "ms_per_shot": 0.2764675274960514,
   "code": "bb144",
-  "decoder": "MBP4+LRB-MS-6 (ours)",
+  "decoder": "MBP4+Qulid-6 (ours)",
   "p": 0.06
  }
 ]

@@ -1,4 +1,4 @@
-"""Circuit-level memory experiment for BB codes and detector groupings for LRB-MS.
+"""Circuit-level memory experiment for BB codes and detector groupings for Qulid.
 
 Uses ldpc.ckt_noise.make_css_code_memory_circuit (Z-basis memory, Z detectors only) with uniform
 circuit noise p on every location, and converts the stim detector error model (DEM) into a

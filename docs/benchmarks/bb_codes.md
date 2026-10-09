@@ -20,7 +20,7 @@ The ensembles use 8 greedy `ell = 8` groupings.
 | BP (min-sum) | 3.0e-02 | 8.3e-02 | 1.5e-01 | 2.4e-01 | 3.7e-01 | 4.7e-01 | 0.06 |
 | BP+OSD-CS7 | 3.0e-02 | 7.9e-02 | 1.5e-01 | 2.4e-01 | 3.6e-01 | 4.5e-01 | 0.07 |
 | BP+OSD-CS40 | 3.0e-02 | 7.9e-02 | 1.5e-01 | 2.4e-01 | 3.6e-01 | 4.5e-01 | 0.09 |
-| LRB-MS ell=8 + OSD-CS7 | 3.3e-02 | 8.0e-02 | 1.7e-01 | 2.4e-01 | 3.8e-01 | 4.6e-01 | 0.09 |
+| Qulid ell=8 + OSD-CS7 | 3.3e-02 | 8.0e-02 | 1.7e-01 | 2.4e-01 | 3.8e-01 | 4.6e-01 | 0.09 |
 | **Ensemble ×8, first** | 3.5e-02 | 8.0e-02 | 1.7e-01 | 2.4e-01 | 3.8e-01 | 4.6e-01 | 0.11 |
 | **Ensemble ×8, all** | 3.0e-02 | 7.2e-02 | 1.6e-01 | 2.3e-01 | 3.6e-01 | 4.6e-01 | 0.49 |
 
@@ -31,7 +31,7 @@ The ensembles use 8 greedy `ell = 8` groupings.
 | BP (min-sum) | 3.3e-03 | 2.0e-02 | 5.8e-02 | 1.7e-01 | 2.8e-01 | 4.5e-01 | 0.10 |
 | BP+OSD-CS7 | 1.4e-03 | 8.3e-03 | 2.5e-02 | 1.0e-01 | 1.8e-01 | 3.1e-01 | 0.12 |
 | BP+OSD-CS40 | 1.3e-03 | 7.8e-03 | 2.2e-02 | 9.0e-02 | 1.6e-01 | 2.9e-01 | 0.16 |
-| LRB-MS ell=8 + OSD-CS7 | 1.5e-03 | 1.1e-02 | 2.9e-02 | 1.1e-01 | 2.0e-01 | 2.9e-01 | 0.22 |
+| Qulid ell=8 + OSD-CS7 | 1.5e-03 | 1.1e-02 | 2.9e-02 | 1.1e-01 | 2.0e-01 | 2.9e-01 | 0.22 |
 | **Ensemble ×8, first** | 1.3e-03 | 9.0e-03 | 2.6e-02 | 1.0e-01 | 1.8e-01 | 2.8e-01 | 0.39 |
 | **Ensemble ×8, all** | 1.0e-03 | 7.8e-03 | 2.3e-02 | 8.6e-02 | 1.7e-01 | 2.8e-01 | 1.71 |
 
@@ -42,7 +42,7 @@ The ensembles use 8 greedy `ell = 8` groupings.
 | BP (min-sum) | 2.0e-04 | 3.7e-03 | 2.4e-02 | 8.8e-02 | 2.4e-01 | 4.9e-01 | 0.17 |
 | BP+OSD-CS7 | 0 (/20000) | 4.0e-04 | 4.6e-03 | 2.7e-02 | 7.6e-02 | 2.3e-01 | 0.20 |
 | BP+OSD-CS40 | 0 (/20000) | 3.5e-04 | 3.2e-03 | 2.0e-02 | 6.2e-02 | 2.1e-01 | 0.26 |
-| LRB-MS ell=8 + OSD-CS7 | 0 (/20000) | 9.0e-04 | 6.8e-03 | 3.2e-02 | 1.0e-01 | 2.8e-01 | 0.39 |
+| Qulid ell=8 + OSD-CS7 | 0 (/20000) | 9.0e-04 | 6.8e-03 | 3.2e-02 | 1.0e-01 | 2.8e-01 | 0.39 |
 | **Ensemble ×8, first** | 0 (/20000) | 5.0e-04 | 2.4e-03 | 2.1e-02 | 6.8e-02 | 2.3e-01 | 0.64 |
 | **Ensemble ×8, all** | 0 (/20000) | 2.5e-04 | 1.6e-03 | 1.5e-02 | 5.2e-02 | 1.8e-01 | 3.05 |
 
@@ -63,13 +63,13 @@ as half a failure, since no minimum-weight rule can break the tie.
 
 ## Findings
 
-- **On BB codes a single LRB-MS decoder does not beat BP+OSD.** Unlike the Tanner codes, BB
+- **On BB codes a single Qulid decoder does not beat BP+OSD.** Unlike the Tanner codes, BB
   checks do not combine into strong local codes. Groupings cut the error rate of plain min-sum BP
   by up to about 2×, but stay well above BP+OSD. This holds for greedy groupings and for groupings
   that follow the code's algebra (cosets of the x and y shifts). The exact per-GC trellis is no
-  better either. With an OSD fallback, one LRB-MS decoder is
+  better either. With an OSD fallback, one Qulid decoder is
   slightly worse than BP+OSD-CS7.
-- **The failures are fixable by regrouping.** When LRB-MS fails, it either does not converge or
+- **The failures are fixable by regrouping.** When Qulid fails, it either does not converge or
   converges to a valid but heavier correction in the wrong logical class. A different grouping
   often succeeds on the same syndrome.
 - **The grouping ensemble is the improvement.** On [[288,12,18]] at p = 0.05, "ensemble ×8, all"
@@ -106,7 +106,7 @@ the same six decoders, up to 10 000 shots per point.
 | BP (min-sum) | 3.5e-03 | 2.2e-02 | 7.4e-02 | 2.4e-01 | 4.5e-01 | 6.5e-01 | 0.7 |
 | BP+OSD-CS7 | 2.0e-04 | 3.5e-03 | 1.8e-02 | 6.8e-02 | 2.1e-01 | 3.9e-01 | 1.1 |
 | BP+OSD-CS40 | 1.0e-04 | 3.2e-03 | 1.4e-02 | 6.0e-02 | 1.9e-01 | 3.7e-01 | 1.8 |
-| LRB-MS ell=8 + OSD-CS7 | 3.0e-04 | 4.9e-03 | 2.5e-02 | 7.9e-02 | 2.5e-01 | 4.3e-01 | 1.9 |
+| Qulid ell=8 + OSD-CS7 | 3.0e-04 | 4.9e-03 | 2.5e-02 | 7.9e-02 | 2.5e-01 | 4.3e-01 | 1.9 |
 | **Ensemble ×8, first** | 0 (/10000) | 2.0e-03 | 1.3e-02 | 5.3e-02 | 1.9e-01 | 3.7e-01 | 4.2 |
 | **Ensemble ×8, all** | 0 (/10000) | 1.3e-03 | 7.5e-03 | 3.9e-02 | 1.5e-01 | 3.1e-01 | 15.1 |
 
@@ -117,7 +117,7 @@ the same six decoders, up to 10 000 shots per point.
 | BP (min-sum) | 5.0e-04 | 4.2e-03 | 3.5e-02 | 1.8e-01 | 4.6e-01 | 7.1e-01 | 1.7 |
 | BP+OSD-CS7 | 0 (/10000) | 1.0e-04 | 3.7e-03 | 3.9e-02 | 1.9e-01 | 4.7e-01 | 2.0 |
 | BP+OSD-CS40 | 0 (/10000) | 1.0e-04 | 3.7e-03 | 3.8e-02 | 1.9e-01 | 4.7e-01 | 2.2 |
-| LRB-MS ell=8 + OSD-CS7 | 0 (/10000) | 3.0e-04 | 5.1e-03 | 5.3e-02 | 2.3e-01 | 4.9e-01 | 3.1 |
+| Qulid ell=8 + OSD-CS7 | 0 (/10000) | 3.0e-04 | 5.1e-03 | 5.3e-02 | 2.3e-01 | 4.9e-01 | 3.1 |
 | **Ensemble ×8, first** | 0 (/10000) | 0 (/10000) | 1.9e-03 | 3.4e-02 | 1.6e-01 | 4.2e-01 | 4.0 |
 | **Ensemble ×8, all** | 0 (/10000) | 0 (/10000) | 1.0e-03 | 1.7e-02 | 1.1e-01 | 3.2e-01 | 23.6 |
 
@@ -131,7 +131,7 @@ the same six decoders, up to 10 000 shots per point.
 - **"Ensemble ×8, first" is the cheap option.** It gives 1.6–1.9× fewer failures than BP+OSD-CS40
   at p = 0.05 on [[360]] and p = 0.06 on [[756]], for about 2× the time. At higher noise it roughly
   ties BP+OSD-CS40.
-- **A single LRB-MS decoder with OSD fallback stays slightly behind BP+OSD** on these codes too.
+- **A single Qulid decoder with OSD fallback stays slightly behind BP+OSD** on these codes too.
   Raising the OSD order from 7 to 40 barely changes BP+OSD.
 
 The BB construction, the exploration scripts, the headroom estimator (`mw_bound.py`) and the raw

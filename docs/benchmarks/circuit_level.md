@@ -6,14 +6,14 @@ Every gate, idle step, reset and measurement fails with probability `p`. Only Z 
 and the whole 12-round history is decoded at once. The decoding matrix is the stim detector error
 model: 936 detectors × 8784 error mechanisms, with per-column priors.
 
-LRB-MS groups detectors rather than code checks. We tried four groupings:
+Qulid groups detectors rather than code checks. We tried four groupings:
 - the same stabilizer in consecutive rounds;
 - spatial groups of stabilizers, within one round or spanning two rounds;
 - greedy overlap on the detector matrix;
 - ensembles of greedy groupings grown from permuted row orders (`ell = 8`).
 
 Every decoder sees the same stim samples, uses a serial schedule with at most 100 iterations, and
-uses min-sum scaling 0.75. The single LRB-MS decoder uses 0.9, which was equally accurate and faster.
+uses min-sum scaling 0.75. The single Qulid decoder uses 0.9, which was equally accurate and faster.
 A point stops at 100 failures or 4 000 shots, or 2 000 shots for the run-all ensemble.
 
 ![Circuit-level BB benchmark](../../examples/bb_circuit/bb_circuit_benchmark.png)
@@ -29,14 +29,14 @@ Logical error rate per shot (12 rounds), with mean decode time per shot on one c
 |---|---|---|---|
 | BP+OSD-CS7 | 1.5e-3 (6/4000), 176 ms | 1.1e-2, 367 ms | 3.4e-2, 644 ms |
 | BP+OSD-CS40 | 1.8e-3 (7/4000), 179 ms | 1.05e-2, 296 ms | 3.4e-2, 656 ms |
-| LRB-MS greedy ell=8 + OSD-CS7 | 6.0e-3, 55 ms | 1.5e-2, 97 ms | 4.6e-2, 275 ms |
+| Qulid greedy ell=8 + OSD-CS7 | 6.0e-3, 55 ms | 1.5e-2, 97 ms | 4.6e-2, 275 ms |
 | **Ensemble ×8, first, OSD on last** | 1.5e-3 (6/4000), 135 ms | 7.5e-3, 305 ms | 3.5e-2, 776 ms |
 | **Ensemble ×8, all, OSD on all** | 0 (/2000), 1.9 s | 5.0e-3 (10/2000), 3.7 s | 1.4e-2, 5.4 s |
 
 **Findings at circuit level**
 
-- **A single LRB-MS decoder is not better than BP+OSD here.** No detector grouping beat plain BP
-  by much on its own: all were at 30–40% failures at p = 0.003. With an OSD fallback, LRB-MS is
+- **A single Qulid decoder is not better than BP+OSD here.** No detector grouping beat plain BP
+  by much on its own: all were at 30–40% failures at p = 0.003. With an OSD fallback, Qulid is
   1.4–4× less accurate than BP+OSD-CS7, but 2–4× faster.
 - **A higher OSD order does not help the baseline.** BP+OSD-CS40 matches BP+OSD-CS7 at every point.
 - **The ensemble does help.** At p = 0.0025, "ensemble ×8, first" fails 1.4× less often than BP+OSD

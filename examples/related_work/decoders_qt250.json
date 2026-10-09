@@ -58,7 +58,7 @@
   "scaling": 0.01
  },
  {
-  "name": "MBP4+LRB-MS-8 (ours)",
+  "name": "MBP4+Qulid-8 (ours)",
   "kind": "mbp",
   "groups": "vertex",
   "gc_method": "lrbms",
@@ -79,7 +79,7 @@
   "max_shots": 100000
  },
  {
-  "name": "MBP4+LRB-MS-8+ladder (ours)",
+  "name": "MBP4+Qulid-8+ladder (ours)",
   "kind": "ladder",
   "groups": "vertex",
   "gc_method": "lrbms",

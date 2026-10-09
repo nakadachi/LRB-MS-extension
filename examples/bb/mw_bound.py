@@ -1,5 +1,5 @@
 """Lower-bound the failure rate of a minimum-weight decoder by collecting light wrong-coset
-solutions found by BP+OSD and LRB-MS ensembles.
+solutions found by BP+OSD and Qulid ensembles.
 
 Usage: python mw_bound.py "[[144,12,12]]" 0.05 40000
 """

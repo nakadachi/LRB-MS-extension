@@ -10,12 +10,20 @@ from ldpc.lrbms_decoder.related_decoders import (
     union_overlap_check_groups,
 )
 
+# Qulid (quantum least-reliable list decoding) is the published name of the Lrbms decoders
+QulidDecoder = LrbmsDecoder
+QulidEnsembleDecoder = LrbmsEnsembleDecoder
+MbpQulidDecoder = MbpLrbmsDecoder
+
 __all__ = [
     "GmbpDecoder",
     "LeadDecoder",
     "LrbmsDecoder",
     "LrbmsEnsembleDecoder",
     "MbpLrbmsDecoder",
+    "MbpQulidDecoder",
+    "QulidDecoder",
+    "QulidEnsembleDecoder",
     "consecutive_check_groups",
     "overlap_check_groups",
     "permuted_overlap_groupings",

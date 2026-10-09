@@ -11,7 +11,7 @@ _GC_METHOD_NAMES = {LRBMS: "lrbms", TRELLIS: "trellis", MAP: "map", SOGRAND: "so
 
 cdef GcMethod _parse_gc_method(value) except *:
     name = str(value).lower()
-    if name in ("lrbms", "lrb_ms", "lrb-ms", "0"):
+    if name in ("qulid", "lrbms", "lrb_ms", "lrb-ms", "0"):
         return LRBMS
     if name in ("trellis", "exact", "maxlog", "max-log", "1"):
         return TRELLIS
@@ -20,7 +20,7 @@ cdef GcMethod _parse_gc_method(value) except *:
     if name in ("sogrand", "3"):
         return SOGRAND
     raise ValueError(
-        f"gc_method '{value}' invalid. Choose 'lrbms', 'trellis', 'map' or 'sogrand'."
+        f"gc_method '{value}' invalid. Choose 'qulid' (= 'lrbms'), 'trellis', 'map' or 'sogrand'."
     )
 
 
@@ -57,7 +57,7 @@ cdef BpSparse* _bp_sparse_of(pcm):
 
 cdef class LrbmsDecoder:
     """
-    Least-Reliable-Basis Min-Sum (LRB-MS) decoder with generalized checks.
+    Qulid (quantum least-reliable list decoding, formerly LRB-MS) decoder with generalized checks.
 
     The rows of the parity-check matrix are grouped into generalized checks (GCs).
     Each GC of ``ell`` rows enforces its local syndrome constraint jointly, and
@@ -84,11 +84,11 @@ cdef class LrbmsDecoder:
     ms_scaling_factor : float
         Scaling factor applied to GC-to-variable messages.
     lrbms_order : int
-        Order ``t`` of LRB-MS: besides the order-1 re-encodings of every
+        Order ``t`` of Qulid: besides the order-1 re-encodings of every
         most-reliable-basis position, all pairs among the ``t`` least-reliable
-        MRB positions are added to the candidate list (``LRB-MS-t``).
+        MRB positions are added to the candidate list (``Qulid-t``).
     gc_method : str
-        ``'lrbms'`` (default) or ``'trellis'`` (exact min-sum over the local coset,
+        ``'lrbms'`` (default; alias ``'qulid'``) or ``'trellis'`` (exact min-sum over the local coset,
         2^ell states; reference baseline, limited to ``ell <= max_trellis_ell``),
         ``'map'`` (exact sum-product over the same trellis, the generalized-check update of
         Mostad et al., arXiv:2603.05486) or ``'sogrand'`` (soft-output GRAND list decoding,
@@ -101,9 +101,9 @@ cdef class LrbmsDecoder:
     max_trellis_ell : int
         Largest group size accepted by the trellis method.
     osd_method : str
-        OSD post-processing applied when LRB-MS does not converge:
+        OSD post-processing applied when Qulid does not converge:
         ``'off'`` (default), ``'osd_0'``, ``'osd_cs'`` (combination sweep) or ``'osd_e'``.
-        Uses the LRB-MS posterior LLRs as soft input, like ``BpOsdDecoder``.
+        Uses the Qulid posterior LLRs as soft input, like ``BpOsdDecoder``.
     osd_order : int
         OSD order (ignored for ``'osd_0'``).
     sogrand_list_size, sogrand_threshold, sogrand_max_queries, sogrand_intercept :
@@ -181,7 +181,7 @@ cdef class LrbmsDecoder:
         self.lrbmsd.sogrand_max_queries = int(sogrand_max_queries)
         self.lrbmsd.sogrand_intercept = int(sogrand_intercept)
 
-        # optional OSD post-processing on LRB-MS failures (reuses ldpc's OSD implementation)
+        # optional OSD post-processing on Qulid failures (reuses ldpc's OSD implementation)
         parsed_method, parsed_order = _parse_osd_method(osd_method, osd_order)
         cdef OsdMethod om = <OsdMethod> parsed_method
         cdef int oo = parsed_order
@@ -424,12 +424,12 @@ cdef class LrbmsDecoder:
 
     @property
     def osd_used(self) -> bool:
-        """True if the last decode fell back to OSD (LRB-MS did not converge)."""
+        """True if the last decode fell back to OSD (Qulid did not converge)."""
         return self._osd_used
 
     @property
     def lrbms_decoding(self) -> np.ndarray:
-        """Hard decision of LRB-MS alone for the last decode (before any OSD fallback)."""
+        """Hard decision of Qulid alone for the last decode (before any OSD fallback)."""
         out = np.zeros(self.n, dtype=np.uint8)
         for i in range(self.n):
             out[i] = self.lrbmsd.decoding[i]
@@ -496,7 +496,7 @@ cdef class MbpLrbmsDecoder:
         :class:`LrbmsDecoder`.
     max_iter, mu, alpha, lrbms_order, schedule, llr_clip :
         Iterations; normalisation at the checks; MBP4 normalisation at the variable nodes;
-        LRB-MS order; ``'serial'`` or ``'parallel'``; message clip.
+        Qulid order; ``'serial'`` or ``'parallel'``; message clip.
     gc_method : str
         ``'lrbms'`` (default), ``'trellis'``, ``'map'`` or ``'sogrand'``, as for
         :class:`LrbmsDecoder`.

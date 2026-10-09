@@ -1,4 +1,4 @@
-"""Circuit-level benchmark (BB memory experiment): LRB-MS with detector groupings vs BP / BP+OSD.
+"""Circuit-level benchmark (BB memory experiment): Qulid with detector groupings vs BP / BP+OSD.
 
 The full detector history of `rounds` rounds is decoded at once with the DEM check matrix.
 A shot fails if the predicted observable flips differ from the sampled ones.

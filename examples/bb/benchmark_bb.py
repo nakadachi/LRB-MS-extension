@@ -1,4 +1,4 @@
-"""Code-capacity benchmark of LRB-MS (single and grouping ensembles) vs BP / BP+OSD on BB codes.
+"""Code-capacity benchmark of Qulid (single and grouping ensembles) vs BP / BP+OSD on BB codes.
 
 Usage: python benchmark_bb.py [--codes codes.json] [--decoders decoders.json] [--out results.json]
 """

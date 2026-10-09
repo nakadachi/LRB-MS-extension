@@ -20,7 +20,7 @@
   "shots": 2200,
   "us_per_shot": 274687.52017455036,
   "code": "[[144,12,12]] x12 rounds",
-  "decoder": "LRB-MS greedy8 +OSD-CS7",
+  "decoder": "Qulid greedy8 +OSD-CS7",
   "p": 0.003
  },
  {
@@ -60,7 +60,7 @@
   "shots": 4000,
   "us_per_shot": 54803.02939174908,
   "code": "[[144,12,12]] x12 rounds",
-  "decoder": "LRB-MS greedy8 +OSD-CS7",
+  "decoder": "Qulid greedy8 +OSD-CS7",
   "p": 0.002
  },
  {
@@ -100,7 +100,7 @@
   "shots": 4000,
   "us_per_shot": 97311.8892904804,
   "code": "[[144,12,12]] x12 rounds",
-  "decoder": "LRB-MS greedy8 +OSD-CS7",
+  "decoder": "Qulid greedy8 +OSD-CS7",
   "p": 0.0025
  },
  {

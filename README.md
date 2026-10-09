@@ -1,19 +1,25 @@
-# LRB-MS: Least-Reliable-Basis Min-Sum decoding with generalized checks
+# Qulid: quantum least-reliable list decoding
+
+**Qulid** (pronounced like *Euclid*; formerly LRB-MS, least-reliable-basis min-sum) decodes with
+*generalized checks* whose soft outputs come from a list of candidates built on the least-reliable
+basis. The Python classes keep their original names (`LrbmsDecoder`, ...) and are also exported as
+`QulidDecoder`, `QulidEnsembleDecoder` and `MbpQulidDecoder`; `gc_method="qulid"` is an alias of
+`"lrbms"`.
 
 `LrbmsDecoder` groups the rows of a parity-check matrix into *generalized checks* (GCs) of `ell`
 rows and runs min-sum message passing between variable nodes and GCs. Each GC returns max-log
 extrinsic LLRs over its local syndrome coset, approximated by a candidate list built from its
-least-reliable basis (LRB-MS-`t`). With one row per GC it reduces exactly to normalised min-sum BP.
+least-reliable basis (Qulid-`t`). With one row per GC it reduces exactly to normalised min-sum BP.
 
 Three decoders are included:
 
 | decoder | what it is | best for |
 |---|---|---|
-| `LrbmsDecoder` | LRB-MS with an optional OSD fallback | codes whose checks form strong local codes (quantum Tanner, GLDPC) |
-| `LrbmsEnsembleDecoder` | LRB-MS over several check groupings, keeps the lightest valid output | codes without local structure (bivariate bicycle) |
-| `MbpLrbmsDecoder` | MBP4 (quaternary memory BP) variable nodes with LRB-MS checks | depolarizing noise, (μ, α) relay retries |
+| `LrbmsDecoder` | Qulid with an optional OSD fallback | codes whose checks form strong local codes (quantum Tanner, GLDPC) |
+| `LrbmsEnsembleDecoder` | Qulid over several check groupings, keeps the lightest valid output | codes without local structure (bivariate bicycle) |
+| `MbpLrbmsDecoder` | MBP4 (quaternary memory BP) variable nodes with Qulid checks | depolarizing noise, (μ, α) relay retries |
 
-The check-update rule is selectable (`gc_method`): LRB-MS, exact max-log, exact MAP (Mostad et al.)
+The check-update rule is selectable (`gc_method`): Qulid (`"qulid"`/`"lrbms"`), exact max-log, exact MAP (Mostad et al.)
 or SOGRAND (Rapp et al.). `GmbpDecoder` and `LeadDecoder` reproduce two further related decoders.
 The C++ core is in `src_cpp/` and the Python bindings in `ldpc.lrbms_decoder`.
 
@@ -21,15 +27,15 @@ The C++ core is in `src_cpp/` and the Python bindings in `ldpc.lrbms_decoder`.
 
 ### Large quantum Tanner codes: no failures where BP, BP+LSD and BP+OSD fail most shots
 
-![LRB-MS on large quantum Tanner codes](docs/figures/tanner_large.png)
+![Qulid on large quantum Tanner codes](docs/figures/tanner_large.png)
 
 With `[8,4,4]` local codes, standard decoders break down at very low noise: on [[3840,48]] at
-p = 0.01, BP fails 23% of shots, BP+LSD-CS7 6.5% and BP+OSD-CS7 1%. LRB-MS-8, with one GC per
+p = 0.01, BP fails 23% of shots, BP+LSD-CS7 6.5% and BP+OSD-CS7 1%. Qulid-8, with one GC per
 Tanner-graph vertex, has **no failures in 10 000 shots up to p = 0.04** on both [8,4,4] codes, and
 is **50–9000× faster** there. On [[6048,40]] ([6,3,3] local codes) the baselines hold up at low
-noise, but at p = 0.07 LRB-MS-8 fails 1e-4 against 4.5e-2 for BP+LSD-CS7, and is 3–7× faster:
+noise, but at p = 0.07 Qulid-8 fails 1e-4 against 4.5e-2 for BP+LSD-CS7, and is 3–7× faster:
 
-| code | p | **LRB-MS-8** | BP (min-sum) | BP+LSD-CS7 | BP+OSD-CS7 |
+| code | p | **Qulid-8** | BP (min-sum) | BP+LSD-CS7 | BP+OSD-CS7 |
 |---|---|---|---|---|---|
 | [[3840,48]] | 0.01 | **5.5 ms** | 299 ms | 495 ms | 14.4 s |
 | [[3840,48]] | 0.02 | **6.9 ms** | 610 ms | 1.3 s | 61 s |
@@ -39,12 +45,12 @@ noise, but at p = 0.07 LRB-MS-8 fails 1e-4 against 4.5e-2 for BP+LSD-CS7, and is
 | [[10752,56]] | 0.04 | **37 ms** | 3.2 s | 18.4 s | not run |
 
 Mean decode time per shot, one core. BP+OSD-CS7 was run only where a shot took under about a
-minute. On the smaller Tanner codes (n = 576–2160, [6,3,3] local codes), LRB-MS-8 gives
+minute. On the smaller Tanner codes (n = 576–2160, [6,3,3] local codes), Qulid-8 gives
 20–200× fewer logical errors than BP+OSD-CS7 at the same or lower cost.
 
 ### Against other generalized-check decoders: the gap widens as local codes grow
 
-![LRB-MS vs exact-MAP, SOGRAND and LEAD generalized-check decoders](docs/figures/related_work.png)
+![Qulid vs exact-MAP, SOGRAND and LEAD generalized-check decoders](docs/figures/related_work.png)
 
 Three recent papers also decode each vertex's local code as one check. Their decoders were
 implemented here and validated against the papers' numbers:
@@ -52,9 +58,9 @@ implemented here and validated against the papers' numbers:
 - soft-output GRAND lists (SOGRAND, Rapp et al.);
 - local BP-LSD feeding a global BP-OSD (LEAD, Xiao et al.).
 
-They ran on the same depolarizing errors as MBP4 + LRB-MS:
+They ran on the same depolarizing errors as MBP4 + Qulid:
 
-| code (checks per vertex), p | **MBP4+LRB-MS (ours)** | GMBP4+OSD-1 [Mostad] | SOGRAND+XZ [Rapp] | LEAD α=0.01 [Xiao] |
+| code (checks per vertex), p | **MBP4+Qulid (ours)** | GMBP4+OSD-1 [Mostad] | SOGRAND+XZ [Rapp] | LEAD α=0.01 [Xiao] |
 |---|---|---|---|---|
 | [[432,16,28]] (12), 0.08 | **1.6e-4, 1.1 ms** | 4.2e-4, 71 ms | 6.0e-3, 27 ms | 0.58, 32 ms |
 | [[576,32,≤16]] C16 (9), 0.09 | **3.9e-4, 1.4 ms** | 9.5e-4, 20 ms | 4.7e-2, 10 ms | 0.47, 26 ms |
@@ -62,15 +68,15 @@ They ran on the same depolarizing errors as MBP4 + LRB-MS:
 
 Logical error rate and mean decode time per shot, one core.
 - **More checks per vertex:** the exact MAP check and SOGRAND get exponentially more expensive,
-  while LRB-MS barely changes. On [[432,16]] LRB-MS is 47–67× faster than GMBP4 and also has
+  while Qulid barely changes. On [[432,16]] Qulid is 47–67× faster than GMBP4 and also has
   2.6–6× fewer failures.
 - **Small local codes:** on [[250,10,15]] (64-state trellis), GMBP4 is the most accurate, at
   3–5× our time.
-- **Post-processing on both sides:** GMBP4 ends with OSD-1. Giving LRB-MS a (μ, α) relay ladder
-  instead costs 0–31% extra time. With it, LRB-MS has 6–10× fewer failures than GMBP4+OSD-1 on
+- **Post-processing on both sides:** GMBP4 ends with OSD-1. Giving Qulid a (μ, α) relay ladder
+  instead costs 0–31% extra time. With it, Qulid has 6–10× fewer failures than GMBP4+OSD-1 on
   [[432,16]] and 5.6–15× fewer on C16 (p ≥ 0.09), and ties or beats it on [[250,10,15]] at
   p ≥ 0.0685 ([details](docs/benchmarks/related_work.md#post-processing-osd-1-against-a-relay-ladder)).
-- **Error floor:** a single pass of LRB-MS has a floor at low noise. On [[250,10,15]] at
+- **Error floor:** a single pass of Qulid has a floor at low noise. On [[250,10,15]] at
   p = 0.0097 it fails 1.5–2.1e-6, against 1.7e-7 for SOGRAND+XZ. The cause is the truncated
   candidate list locking light errors into trapping sets. With the relay ladder there were no
   failures in 24 million shots, at about two thirds of SOGRAND's time
@@ -78,9 +84,9 @@ Logical error rate and mean decode time per shot, one core.
 
 ### BB codes: the grouping ensemble beats BP+OSD, and the gap grows with code size
 
-![LRB-MS ensemble on bivariate bicycle codes](docs/figures/bb_ensemble.png)
+![Qulid ensemble on bivariate bicycle codes](docs/figures/bb_ensemble.png)
 
-BB checks do not form strong local codes, so a single LRB-MS decoder only matches BP+OSD. An
+BB checks do not form strong local codes, so a single Qulid decoder only matches BP+OSD. An
 ensemble over 8 check groupings, keeping the lightest valid output, gives **3.7× fewer failures
 than BP+OSD-CS40 on [[756,16,≤34]] at p = 0.06**, 2.5× on [[360,12,≤24]] at p = 0.05, and
 2.1–2.4× at circuit level on [[144,12,12]] (12 rounds, p = 0.0025–0.003). It costs more time:
@@ -123,9 +129,9 @@ keeping the lightest output of 3 tuned (μ, α) legs gives ×2.0 for about 3× t
 | benchmark | contents |
 |---|---|
 | [Quantum Tanner codes](docs/benchmarks/quantum_tanner.md) | n = 576–10 752, full error-rate and timing tables, LRB order, exact trellis, OSD fallback |
-| [Bivariate bicycle codes](docs/benchmarks/bb_codes.md) | [[72]] to [[756]], single LRB-MS vs ensembles, minimum-weight headroom estimate |
+| [Bivariate bicycle codes](docs/benchmarks/bb_codes.md) | [[72]] to [[756]], single Qulid vs ensembles, minimum-weight headroom estimate |
 | [Circuit-level noise](docs/benchmarks/circuit_level.md) | BB [[144,12,12]] memory experiment, detector groupings |
-| [Related decoders](docs/benchmarks/related_work.md) | exact-MAP GMBP4, SOGRAND and LEAD reimplemented, validated against their papers and compared with LRB-MS |
+| [Related decoders](docs/benchmarks/related_work.md) | exact-MAP GMBP4, SOGRAND and LEAD reimplemented, validated against their papers and compared with Qulid |
 | [Relay ladders](docs/benchmarks/relay_ladders.md) | (μ, α) sweeps, ladder search, lightest-of-k, verification of reported ladders |
 
 ## Installation

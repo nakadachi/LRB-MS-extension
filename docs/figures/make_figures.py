@@ -95,7 +95,7 @@ def figure_large_tanner():
         ("PSL(2,7)/[8,4,4] [[10752,56]]", "[[10752,56]], [8,4,4] local code"),
     ]
     series = [
-        ("LRB-MS-8 (vertex GCs)", BLUE, "o", "LRB-MS-8"),
+        ("Qulid-8 (vertex GCs)", BLUE, "o", "Qulid-8"),
         ("BP (min-sum)", ORANGE, "s", "BP (min-sum)"),
         ("BP+LSD-CS7", AQUA, "D", "BP+LSD-CS7"),
         ("BP+OSD-CS7", YELLOW, "^", "BP+OSD-CS7"),
@@ -129,8 +129,8 @@ def figure_bb_ensemble():
         ),
     ]
     series = [
-        ("Ensemble x8, all, OSD on all", BLUE, "o", "LRB-MS ensemble ×8, all"),
-        ("Ensemble x8, first, OSD on last", VIOLET, "s", "LRB-MS ensemble ×8, first"),
+        ("Ensemble x8, all, OSD on all", BLUE, "o", "Qulid ensemble ×8, all"),
+        ("Ensemble x8, first, OSD on last", VIOLET, "s", "Qulid ensemble ×8, first"),
         ("BP+OSD-CS40", YELLOW, "^", "BP+OSD-CS40"),
     ]
     fig, axes = plt.subplots(1, 3, figsize=(11, 3.6), facecolor=SURFACE)
@@ -145,7 +145,7 @@ def figure_bb_ensemble():
 
 
 def figure_relay_ladder():
-    # [[288,12,18]], total depolarizing p, MBP4 + LRB-MS (README: relay ladders)
+    # [[288,12,18]], total depolarizing p, MBP4 + Qulid (README: relay ladders)
     rungs = ["base (0.75, 1)", "+ μ-only retries", "+ (μ, α) retries"]
     runs = [
         ("p = 0.075, 120k shots", [97 / 120e3, 21 / 120e3, 9 / 120e3], ORANGE, "s"),
@@ -164,7 +164,7 @@ def figure_relay_ladder():
             va="center",
             color=INK2,
         )
-    style_axis(ax, "[[288,12,18]], depolarizing noise, MBP4 + LRB-MS", "")
+    style_axis(ax, "[[288,12,18]], depolarizing noise, MBP4 + Qulid", "")
     ax.set_xticks(x, rungs)
     ax.set_xlim(-0.2, len(rungs) - 0.6)
     ax.set_ylabel("logical error rate per shot")

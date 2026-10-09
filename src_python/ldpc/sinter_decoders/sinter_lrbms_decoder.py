@@ -10,7 +10,7 @@ from ldpc.lrbms_decoder import LrbmsDecoder
 
 class SinterLrbmsDecoder(sinter.Decoder):
     """
-    Sinter wrapper for the LRB-MS generalized-check decoder.
+    Sinter wrapper for the Qulid generalized-check decoder.
 
     Parameters
     ----------
@@ -22,13 +22,13 @@ class SinterLrbmsDecoder(sinter.Decoder):
     ms_scaling_factor : float
         Scaling factor for GC-to-variable messages.
     lrbms_order : int
-        LRB-MS order ``t``.
+        Qulid order ``t``.
     gc_method : str
         ``'lrbms'`` or ``'trellis'``.
     schedule : str
         ``'parallel'`` or ``'serial'``.
     osd_method : str
-        OSD fallback when LRB-MS does not converge: ``'off'``, ``'osd_0'``, ``'osd_cs'``, ``'osd_e'``.
+        OSD fallback when Qulid does not converge: ``'off'``, ``'osd_0'``, ``'osd_cs'``, ``'osd_e'``.
     osd_order : int
         OSD order.
 

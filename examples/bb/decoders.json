@@ -14,7 +14,7 @@
   "osd_order": 40
  },
  {
-  "name": "LRB-MS ell=8 +OSD-CS7",
+  "name": "Qulid ell=8 +OSD-CS7",
   "kind": "lrbms",
   "groups": 8,
   "osd_method": "osd_cs",

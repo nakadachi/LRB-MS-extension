@@ -1,4 +1,4 @@
-# Formatting for the C++ sources added by the LRB-MS extension.
+# Formatting for the C++ sources added by the Qulid extension.
 BasedOnStyle: LLVM
 IndentWidth: 4
 ColumnLimit: 100

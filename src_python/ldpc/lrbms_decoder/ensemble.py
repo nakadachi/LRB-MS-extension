@@ -1,4 +1,4 @@
-"""Ensemble LRB-MS: decode with several check groupings and keep the most likely correction."""
+"""Ensemble Qulid: decode with several check groupings and keep the most likely correction."""
 
 from typing import List, Optional, Sequence, Union
 
@@ -54,7 +54,7 @@ class LrbmsEnsembleDecoder:
         groupings of size ``ell`` from :func:`permuted_overlap_groupings`.
     stop : str
         ``'all'`` (default) runs every member. ``'escalate'`` accepts the first
-        member's output when its LRB-MS iterations converge, and runs the remaining
+        member's output when its Qulid iterations converge, and runs the remaining
         members only when they do not. In our benchmarks it matched ``'all'`` in
         accuracy at 2-3x less cost (use it with ``osd_members='all'``).
         ``'first'`` stops at the first member that converges (cheapest, weaker).

@@ -1,4 +1,4 @@
-"""LRB-MS with x-coset and overlapping x+y-coset groupings on a BB code.
+"""Qulid with x-coset and overlapping x+y-coset groupings on a BB code.
 
 Usage: python explore4.py "[[144,12,12]]" 0.04,0.05
 """

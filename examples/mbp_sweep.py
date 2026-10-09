@@ -1,4 +1,4 @@
-"""Sweep (mu, alpha) for a single MBP4 + LRB-MS leg on identical shots (total depolarizing p).
+"""Sweep (mu, alpha) for a single MBP4 + Qulid leg on identical shots (total depolarizing p).
 
 Usage: python mbp_sweep.py bb144 0.06 20000 [ell]
 """

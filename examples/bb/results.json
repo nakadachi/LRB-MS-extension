@@ -32,7 +32,7 @@
   "shots": 10000,
   "us_per_shot": 50.67969060000905,
   "code": "[[72,12,6]]",
-  "decoder": "LRB-MS ell=8 +OSD-CS7",
+  "decoder": "Qulid ell=8 +OSD-CS7",
   "p": 0.02
  },
  {
@@ -86,7 +86,7 @@
   "shots": 3000,
   "us_per_shot": 54.194520666745426,
   "code": "[[72,12,6]]",
-  "decoder": "LRB-MS ell=8 +OSD-CS7",
+  "decoder": "Qulid ell=8 +OSD-CS7",
   "p": 0.03
  },
  {
@@ -140,7 +140,7 @@
   "shots": 2000,
   "us_per_shot": 72.2071474999666,
   "code": "[[72,12,6]]",
-  "decoder": "LRB-MS ell=8 +OSD-CS7",
+  "decoder": "Qulid ell=8 +OSD-CS7",
   "p": 0.04
  },
  {
@@ -194,7 +194,7 @@
   "shots": 1000,
   "us_per_shot": 93.65982399992846,
   "code": "[[72,12,6]]",
-  "decoder": "LRB-MS ell=8 +OSD-CS7",
+  "decoder": "Qulid ell=8 +OSD-CS7",
   "p": 0.05
  },
  {
@@ -248,7 +248,7 @@
   "shots": 1000,
   "us_per_shot": 77.46913800008316,
   "code": "[[72,12,6]]",
-  "decoder": "LRB-MS ell=8 +OSD-CS7",
+  "decoder": "Qulid ell=8 +OSD-CS7",
   "p": 0.06
  },
  {
@@ -302,7 +302,7 @@
   "shots": 1000,
   "us_per_shot": 132.7483640000082,
   "code": "[[72,12,6]]",
-  "decoder": "LRB-MS ell=8 +OSD-CS7",
+  "decoder": "Qulid ell=8 +OSD-CS7",
   "p": 0.07
  },
  {
@@ -356,7 +356,7 @@
   "shots": 1000,
   "us_per_shot": 129.9354019998873,
   "code": "[[72,12,6]]",
-  "decoder": "LRB-MS ell=8 +OSD-CS7",
+  "decoder": "Qulid ell=8 +OSD-CS7",
   "p": 0.08
  },
  {
@@ -410,7 +410,7 @@
   "shots": 20000,
   "us_per_shot": 80.27935004998312,
   "code": "[[144,12,12]]",
-  "decoder": "LRB-MS ell=8 +OSD-CS7",
+  "decoder": "Qulid ell=8 +OSD-CS7",
   "p": 0.02
  },
  {
@@ -464,7 +464,7 @@
   "shots": 20000,
   "us_per_shot": 94.99320215001603,
   "code": "[[144,12,12]]",
-  "decoder": "LRB-MS ell=8 +OSD-CS7",
+  "decoder": "Qulid ell=8 +OSD-CS7",
   "p": 0.03
  },
  {
@@ -518,7 +518,7 @@
   "shots": 10000,
   "us_per_shot": 131.7581776999873,
   "code": "[[144,12,12]]",
-  "decoder": "LRB-MS ell=8 +OSD-CS7",
+  "decoder": "Qulid ell=8 +OSD-CS7",
   "p": 0.04
  },
  {
@@ -572,7 +572,7 @@
   "shots": 4000,
   "us_per_shot": 223.19761649998782,
   "code": "[[144,12,12]]",
-  "decoder": "LRB-MS ell=8 +OSD-CS7",
+  "decoder": "Qulid ell=8 +OSD-CS7",
   "p": 0.05
  },
  {
@@ -626,7 +626,7 @@
   "shots": 1000,
   "us_per_shot": 486.4876199999344,
   "code": "[[144,12,12]]",
-  "decoder": "LRB-MS ell=8 +OSD-CS7",
+  "decoder": "Qulid ell=8 +OSD-CS7",
   "p": 0.06
  },
  {
@@ -680,7 +680,7 @@
   "shots": 1000,
   "us_per_shot": 690.4003839999858,
   "code": "[[144,12,12]]",
-  "decoder": "LRB-MS ell=8 +OSD-CS7",
+  "decoder": "Qulid ell=8 +OSD-CS7",
   "p": 0.07
  },
  {
@@ -734,7 +734,7 @@
   "shots": 1000,
   "us_per_shot": 1041.677826999944,
   "code": "[[144,12,12]]",
-  "decoder": "LRB-MS ell=8 +OSD-CS7",
+  "decoder": "Qulid ell=8 +OSD-CS7",
   "p": 0.08
  },
  {
@@ -788,7 +788,7 @@
   "shots": 20000,
   "us_per_shot": 170.0041602499823,
   "code": "[[288,12,18]]",
-  "decoder": "LRB-MS ell=8 +OSD-CS7",
+  "decoder": "Qulid ell=8 +OSD-CS7",
   "p": 0.02
  },
  {
@@ -842,7 +842,7 @@
   "shots": 20000,
   "us_per_shot": 177.57217220000712,
   "code": "[[288,12,18]]",
-  "decoder": "LRB-MS ell=8 +OSD-CS7",
+  "decoder": "Qulid ell=8 +OSD-CS7",
   "p": 0.03
  },
  {
@@ -896,7 +896,7 @@
   "shots": 20000,
   "us_per_shot": 228.6186346000136,
   "code": "[[288,12,18]]",
-  "decoder": "LRB-MS ell=8 +OSD-CS7",
+  "decoder": "Qulid ell=8 +OSD-CS7",
   "p": 0.04
  },
  {
@@ -950,7 +950,7 @@
   "shots": 15000,
   "us_per_shot": 390.45547533330586,
   "code": "[[288,12,18]]",
-  "decoder": "LRB-MS ell=8 +OSD-CS7",
+  "decoder": "Qulid ell=8 +OSD-CS7",
   "p": 0.05
  },
  {
@@ -1004,7 +1004,7 @@
   "shots": 4000,
   "us_per_shot": 754.9179655000273,
   "code": "[[288,12,18]]",
-  "decoder": "LRB-MS ell=8 +OSD-CS7",
+  "decoder": "Qulid ell=8 +OSD-CS7",
   "p": 0.06
  },
  {
@@ -1058,7 +1058,7 @@
   "shots": 1000,
   "us_per_shot": 1679.553487000021,
   "code": "[[288,12,18]]",
-  "decoder": "LRB-MS ell=8 +OSD-CS7",
+  "decoder": "Qulid ell=8 +OSD-CS7",
   "p": 0.07
  },
  {
@@ -1112,7 +1112,7 @@
   "shots": 1000,
   "us_per_shot": 3444.516710999892,
   "code": "[[288,12,18]]",
-  "decoder": "LRB-MS ell=8 +OSD-CS7",
+  "decoder": "Qulid ell=8 +OSD-CS7",
   "p": 0.08
  },
  {

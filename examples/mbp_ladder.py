@@ -1,4 +1,4 @@
-"""(mu, alpha)-relay ladders for the MBP4 + LRB-MS hybrid under depolarizing code-capacity noise.
+"""(mu, alpha)-relay ladders for the MBP4 + Qulid hybrid under depolarizing code-capacity noise.
 
 A ladder is a list of (mu, alpha) legs. The first leg decodes every shot; each later leg is
 fired only when all previous legs failed to converge. A shot fails if the final output does

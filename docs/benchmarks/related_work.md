@@ -1,7 +1,7 @@
 # Comparison with related generalized-check decoders
 
 Three recent papers also decode quantum Tanner codes by treating each vertex's local code as one
-generalized check. We implemented all three in this package and compared them with LRB-MS on
+generalized check. We implemented all three in this package and compared them with Qulid on
 the same codes, the same noise and the same error samples.
 
 | paper | idea | where it lives here |
@@ -10,7 +10,7 @@ the same codes, the same noise and the same error samples.
 | Rapp, Médard, Tang and Duffy, [arXiv:2603.18318](https://arxiv.org/abs/2603.18318) | each generalized check decoded by soft-output GRAND: an ORBGRAND list plus the probability that the true pattern is not in it | `gc_method="sogrand"` |
 | Xiao, Shi, Huang, Wang and Wang, [arXiv:2605.17796](https://arxiv.org/abs/2605.17796) | LEAD: BP-LSD on every local code, local estimates averaged into a prior, then global BP-OSD (one pass) | `LeadDecoder` |
 
-LRB-MS sits between the first two. Like SOGRAND it scores a short list of local patterns
+Qulid sits between the first two. Like SOGRAND it scores a short list of local patterns
 instead of the whole coset; unlike SOGRAND the list comes from a least-reliable-basis
 re-encoding and the output is max-log. Exact MAP is the reference for both.
 
@@ -46,7 +46,7 @@ re-encoding and the output is max-log. Exact MAP is the reference for both.
   min-sum, iterations = n) runs from that prior. X and Z are decoded independently at 2p/3.
   The paper does not say how local views with a zero syndrome enter the average (`ldpc`'s
   BP-LSD skips them). We use the channel prior.
-- **LRB-MS (ours):** `MbpLrbmsDecoder` with one generalized check per vertex, LRB order 8,
+- **Qulid (ours):** `MbpLrbmsDecoder` with one generalized check per vertex, LRB order 8,
   serial schedule, α = 1, at most 100 iterations, no OSD. μ was chosen per code on separate
   error samples: 0.95 for [[250,10,15]], whose local codes are high-rate (6 checks on 25 bits),
   and 0.75 for the other two.
@@ -91,7 +91,7 @@ read off the papers' figures, so they are approximate.
 
 Decoders at their papers' settings: GMBP4 with a = 1.6, 6 + 6 iterations and OSD-1; SOGRAND
 with list size 4 and 200 iterations; LEAD with α = 1 and with the α = 0.01 regularisation the
-paper uses for overconfident local decoders. Ours is MBP4 + LRB-MS-8 with one generalized check
+paper uses for overconfident local decoders. Ours is MBP4 + Qulid-8 with one generalized check
 per vertex, at most 100 iterations and no OSD.
 
 **Mean decode time per shot (one core), one noise level per code:**
@@ -105,26 +105,26 @@ per vertex, at most 100 iterations and no OSD.
 ### Findings
 
 - **[[432,16,28]], the code of Mostad et al. (12 checks per vertex):**
-  - LRB-MS has 2.6–6× fewer failures than GMBP4 (e.g. 1.6e-4 vs 4.2e-4 at p = 0.08) and is
+  - Qulid has 2.6–6× fewer failures than GMBP4 (e.g. 1.6e-4 vs 4.2e-4 at p = 0.08) and is
     47–67× faster.
   - Against SOGRAND+XZ it has 5–170× fewer failures and is 24–33× faster.
   - The exact MAP check scans a 4096-state trellis over 48 bits, and SOGRAND needs about 2^12
-    queries per list entry. LRB-MS does one reliability-ordered elimination and scores a short
+    queries per list entry. Qulid does one reliability-ordered elimination and scores a short
     list, so its cost hardly depends on the number of checks per vertex.
 - **C16 [[576,32]] (9 checks per vertex):**
-  - LRB-MS matches GMBP4 where both rarely fail (p ≤ 0.08), and fails 2.4–7× less often
+  - Qulid matches GMBP4 where both rarely fail (p ≤ 0.08), and fails 2.4–7× less often
     above that.
   - It is 11–16× faster than GMBP4.
   - It beats SOGRAND+XZ by 19–400× in error rate and 5–12× in time.
 - **[[250,10,15]], the code of Rapp et al. (6 checks per vertex):**
   - With only 64 trellis states per check, exact MAP is cheap, and GMBP4 is the most accurate
     decoder here: no failures in 100 000 shots at p ≤ 0.0518, and 1.4–4× fewer failures than
-    LRB-MS above that, at 3–5× its time.
-  - LRB-MS beats SOGRAND+XZ by 2.3–7.5× in error rate, at a half to a quarter of its time.
+    Qulid above that, at 3–5× its time.
+  - Qulid beats SOGRAND+XZ by 2.3–7.5× in error rate, at a half to a quarter of its time.
 - **An exact check update alone is not enough.** "MBP4+MAP" uses exact MAP checks without
-  damping (a = 1) and without OSD. It is worse than both GMBP4 and LRB-MS at every noise
+  damping (a = 1) and without OSD. It is worse than both GMBP4 and Qulid at every noise
   level on [[250,10,15]], by up to 10×. GMBP4 gets its accuracy from the 1/a = 0.625 damping and the OSD-1 fallback
-  as much as from exact checks. LRB-MS uses the damping μ instead (0.95 here).
+  as much as from exact checks. Qulid uses the damping μ instead (0.95 here).
 - **X/Z correlation matters for all of them.** SOGRAND+XZ is 4–32× better than binary SOGRAND
   on [[250,10,15]], the gain Rapp et al. report.
 - **LEAD does not help at these noise levels.** In the range compared here (p ≥ 0.039), LEAD is
@@ -140,7 +140,7 @@ per vertex, at most 100 iterations and no OSD.
 
 ### Post-processing: OSD-1 against a relay ladder
 
-GMBP4 rescues non-converged shots with OSD-1. The like-for-like counterpart for MBP4 + LRB-MS
+GMBP4 rescues non-converged shots with OSD-1. The like-for-like counterpart for MBP4 + Qulid
 is a relay ladder: retry with new (μ, α) only when the previous attempt did not converge. The
 legs were chosen greedily on separate tuning samples (`tune_ladder.py`). Almost all base
 failures are non-convergence there: 0 of 83 on [[432,16]] were wrong convergences, 5 of 63 on
@@ -154,7 +154,7 @@ C16 and 0 of 95 on [[250]].
 
 Same test samples as above (the ladder ran up to 200 000 shots):
 
-| code, p | GMBP4+OSD-1 [Mostad] | MBP4+LRB-MS | **MBP4+LRB-MS + ladder** | ladder vs GMBP4 |
+| code, p | GMBP4+OSD-1 [Mostad] | MBP4+Qulid | **MBP4+Qulid + ladder** | ladder vs GMBP4 |
 |---|---|---|---|---|
 | [[432,16]], 0.07 | 1.7e-4, 58 ms | 3.0e-5, 0.86 ms | **0 (/200 000), 0.92 ms** | ≥ 5× fewer failures, 63× faster |
 | [[432,16]], 0.08 | 4.2e-4, 71 ms | 1.6e-4, 1.07 ms | **4.0e-5, 1.08 ms** | 10×, 65× |
@@ -170,7 +170,7 @@ Same test samples as above (the ladder ran up to 200 000 shots):
 
 - **The ladder is nearly free.** It fires only on the shots that did not converge, so the mean
   time rises by 0–31%. It cuts failures 1.4–8× relative to the single leg.
-- **With post-processing on both sides, MBP4 + LRB-MS is ahead on every code where the local
+- **With post-processing on both sides, MBP4 + Qulid is ahead on every code where the local
   code has more than 6 checks.** On [[432,16]] it has 6–10× fewer failures than GMBP4+OSD-1
   at 37–65× less time. On C16 it has 5.6–15× fewer failures above p = 0.08 at 12–14× less time.
 - **On the small-local-code [[250,10,15]], it now matches GMBP4** at p = 0.0685, is 1.8× better
@@ -185,7 +185,7 @@ damped retry rescues most of them. Its first legs are (μ, α) = (0.8, 1.1) on [
 on [[432]] and (0.6, 1.1) on C16, while plain SOGRAND runs undamped. This makes it
 3–120× better than plain SOGRAND+XZ. Ladder against ladder, on the same samples:
 
-| code, p | SOGRAND+XZ | SOGRAND+XZ + ladder | **MBP4+LRB-MS + ladder** | LRB-MS ladder vs SOGRAND ladder |
+| code, p | SOGRAND+XZ | SOGRAND+XZ + ladder | **MBP4+Qulid + ladder** | Qulid ladder vs SOGRAND ladder |
 |---|---|---|---|---|
 | [[432,16]], 0.08 | 6.0e-3, 27 ms | 1.7e-4 (2 fails), 28 ms | **4.0e-5, 1.1 ms** | ≈ 4× fewer failures, 26× faster |
 | [[432,16]], 0.09 | 2.0e-2, 43 ms | 2.2e-3, 48 ms | **5.2e-4, 1.5 ms** | 4.2×, 33× |
@@ -199,11 +199,11 @@ on [[432]] and (0.6, 1.1) on C16, while plain SOGRAND runs undamped. This makes 
 
 ### Error floor at low noise
 
-A single pass of MBP4 + LRB-MS has an error floor that SOGRAND does not, visible on
+A single pass of MBP4 + Qulid has an error floor that SOGRAND does not, visible on
 [[250,10,15]] below p ≈ 0.03. With the relay ladder it disappears. The runs reach the published
 SOGRAND points, on the same samples for all decoders (`run_low.sh`, `run_p0097.sh`):
 
-| p | LRB-MS-8, one pass | LRB-MS-12, one pass | **LRB-MS-12 + ladder** | SOGRAND+XZ (ours) | SOGRAND+XZ (paper) |
+| p | Qulid-8, one pass | Qulid-12, one pass | **Qulid-12 + ladder** | SOGRAND+XZ (ours) | SOGRAND+XZ (paper) |
 |---|---|---|---|---|---|
 | 0.0296 | 3.9e-5 | 2.6e-5 | **1.0e-6** (1 / 1M) | 1.7e-5 | 1.6e-5 |
 | 0.0224 | 1.5e-5 | 5.0e-6 | **0** (/ 2M) | 5.0e-6 | 5.2e-6 |
@@ -211,14 +211,14 @@ SOGRAND points, on the same samples for all decoders (`run_low.sh`, `run_p0097.s
 | 0.0097 | 2.1e-6 | 1.5e-6 | **0** (/ 24M; < 1.3e-7 at 95%) | 1.7e-7 (4 / 24M) | 2.1e-7 |
 | time per shot | 0.18–0.25 ms | 0.25–0.31 ms | 0.25–0.31 ms | 0.39–0.51 ms | |
 
-**Why there is a floor.** `floor_probe.py` collected the 36 failures of single-pass LRB-MS-8
+**Why there is a floor.** `floor_probe.py` collected the 36 failures of single-pass Qulid-8
 in 2 million shots at p = 0.0224:
 - every one was a non-convergence, of a light error (mostly weight 5–7 on a distance-15 code);
 - none converged to a wrong logical, so a minimum-weight decoder would decode them all.
 
 The rule that fixes a failure shows its cause. Re-decoding the same 36 errors:
 - exact max-log trellis at the same μ: 35 decoded;
-- LRB-MS with list order t = 10, 12 or 19: 32, 36 and 36 decoded;
+- Qulid with list order t = 10, 12 or 19: 32, 36 and 36 decoded;
 - SOGRAND, OSD-CS7 or the relay ladder: all 36 decoded.
 
 So the culprit is the truncated LRB candidate list, not max-log or the message passing. With
@@ -233,11 +233,11 @@ p ≈ 0.01, where it still sits 9× above SOGRAND (1.5e-6 against 1.7e-7). Retry
 trapping set: the ladder had no failures in 30 million shots at p ≤ 0.0224. It fires on fewer
 than 1 shot in 10 000 there, so it costs nothing measurable, and the result is about 35% faster
 than SOGRAND+XZ. **Use the ladder (or an OSD fallback) for low-noise operation; a single pass
-of LRB-MS is not floor-free.**
+of Qulid is not floor-free.**
 
 ### Caveats
 
-- LRB-MS's μ and ladder legs were tuned per code on separate samples. The other decoders use their papers'
+- Qulid's μ and ladder legs were tuned per code on separate samples. The other decoders use their papers'
   settings, which their authors tuned on their own codes; GMBP4's a = 1.6 was chosen on the
   [[432,16]] code itself.
 - Every decoder runs single-threaded. SOGRAND's queries and the MAP trellis both parallelise
@@ -257,10 +257,10 @@ of LRB-MS is not floor-free.**
 | SOGRAND [Rapp et al.] | 2.8e-03 | 1.0e-02 | 2.9e-02 | 1.4e-01 |
 | SOGRAND+XZ [Rapp et al.] | 9.0e-05 | 1.1e-03 | 7.1e-03 | 3.4e-02 |
 | LEAD [Xiao et al.] | 3.5e-02 | 1.0e-01 | 2.8e-01 | 6.4e-01 |
-| MBP4+LRB-MS-8 (ours) | 3.0e-05 | 1.6e-04 | 9.5e-04 | 1.5e-02 |
+| MBP4+Qulid-8 (ours) | 3.0e-05 | 1.6e-04 | 9.5e-04 | 1.5e-02 |
 | MBP4+MAP, 100 it. (exact GC) | 2.9e-04 | 3.7e-04 | 1.5e-03 | 1.8e-02 |
 | LEAD α=0.01 [Xiao et al.] | 5.7e-03 | 2.7e-02 | 1.2e-01 | 4.2e-01 |
-| MBP4+LRB-MS-8+ladder (ours) | 0 (/200000) | 2.0e-05 | 2.3e-04 | 5.7e-03 |
+| MBP4+Qulid-8+ladder (ours) | 0 (/200000) | 2.0e-05 | 2.3e-04 | 5.7e-03 |
 | SOGRAND+XZ+ladder [Rapp et al. + ours] | 0 (/100000) | 3.0e-05 | 5.3e-04 | 1.1e-02 |
 
 **[[250,10,15]]**, mean decode time per shot
@@ -273,10 +273,10 @@ of LRB-MS is not floor-free.**
 | SOGRAND [Rapp et al.] | 0.65 ms | 1.03 ms | 1.74 ms | 5.33 ms |
 | SOGRAND+XZ [Rapp et al.] | 0.67 ms | 0.90 ms | 1.44 ms | 4.22 ms |
 | LEAD [Xiao et al.] | 2.30 ms | 4.72 ms | 5.88 ms | 6.71 ms |
-| MBP4+LRB-MS-8 (ours) | 0.32 ms | 0.37 ms | 0.51 ms | 1.11 ms |
+| MBP4+Qulid-8 (ours) | 0.32 ms | 0.37 ms | 0.51 ms | 1.11 ms |
 | MBP4+MAP, 100 it. (exact GC) | 0.68 ms | 0.78 ms | 1.11 ms | 2.01 ms |
 | LEAD α=0.01 [Xiao et al.] | 1.52 ms | 1.96 ms | 2.82 ms | 4.58 ms |
-| MBP4+LRB-MS-8+ladder (ours) | 0.33 ms | 0.38 ms | 0.52 ms | 1.44 ms |
+| MBP4+Qulid-8+ladder (ours) | 0.33 ms | 0.38 ms | 0.52 ms | 1.44 ms |
 | SOGRAND+XZ+ladder [Rapp et al. + ours] | 0.66 ms | 0.90 ms | 1.62 ms | 5.49 ms |
 
 **[[432,16,28]]**, logical error rate
@@ -289,8 +289,8 @@ of LRB-MS is not floor-free.**
 | SOGRAND+XZ [Rapp et al.] | 1.7e-03 | 4.1e-03 | 6.0e-03 | 2.0e-02 | 5.2e-02 |
 | LEAD [Xiao et al.] | 3.0e-01 | 5.3e-01 | 7.6e-01 | 8.9e-01 | 9.6e-01 |
 | LEAD α=0.01 [Xiao et al.] | 1.5e-01 | 3.0e-01 | 5.8e-01 | 7.7e-01 | 9.1e-01 |
-| MBP4+LRB-MS-8 (ours) | 1.0e-05 | 3.0e-05 | 1.6e-04 | 1.5e-03 | 9.8e-03 |
-| MBP4+LRB-MS-8+ladder (ours) | 0 (/200000) | 0 (/200000) | 4.0e-05 | 5.2e-04 | 4.6e-03 |
+| MBP4+Qulid-8 (ours) | 1.0e-05 | 3.0e-05 | 1.6e-04 | 1.5e-03 | 9.8e-03 |
+| MBP4+Qulid-8+ladder (ours) | 0 (/200000) | 0 (/200000) | 4.0e-05 | 5.2e-04 | 4.6e-03 |
 | SOGRAND+XZ+ladder [Rapp et al. + ours] | 8.3e-05 | 8.3e-05 | 1.7e-04 | 2.2e-03 | 1.2e-02 |
 
 **[[432,16,28]]**, mean decode time per shot
@@ -303,8 +303,8 @@ of LRB-MS is not floor-free.**
 | SOGRAND+XZ [Rapp et al.] | 17.42 ms | 22.06 ms | 27.39 ms | 42.95 ms | 71.05 ms |
 | LEAD [Xiao et al.] | 21.78 ms | 32.96 ms | 47.19 ms | 56.53 ms | 57.34 ms |
 | LEAD α=0.01 [Xiao et al.] | 11.33 ms | 21.84 ms | 32.08 ms | 46.74 ms | 56.53 ms |
-| MBP4+LRB-MS-8 (ours) | 0.73 ms | 0.86 ms | 1.07 ms | 1.48 ms | 2.17 ms |
-| MBP4+LRB-MS-8+ladder (ours) | 0.76 ms | 0.92 ms | 1.08 ms | 1.45 ms | 2.79 ms |
+| MBP4+Qulid-8 (ours) | 0.73 ms | 0.86 ms | 1.07 ms | 1.48 ms | 2.17 ms |
+| MBP4+Qulid-8+ladder (ours) | 0.76 ms | 0.92 ms | 1.08 ms | 1.45 ms | 2.79 ms |
 | SOGRAND+XZ+ladder [Rapp et al. + ours] | 17.94 ms | 22.64 ms | 28.29 ms | 48.31 ms | 108.41 ms |
 
 **[[576,32,≤16]] C16**, logical error rate
@@ -317,8 +317,8 @@ of LRB-MS is not floor-free.**
 | SOGRAND+XZ [Rapp et al.] | 1.2e-02 | 1.8e-02 | 4.7e-02 | 6.2e-02 | 1.5e-01 |
 | LEAD [Xiao et al.] | 2.6e-01 | 5.5e-01 | 7.4e-01 | 9.2e-01 | 9.6e-01 |
 | LEAD α=0.01 [Xiao et al.] | 7.0e-02 | 2.8e-01 | 4.7e-01 | 7.8e-01 | 9.0e-01 |
-| MBP4+LRB-MS-8 (ours) | 3.0e-05 | 9.0e-05 | 3.9e-04 | 1.6e-03 | 7.8e-03 |
-| MBP4+LRB-MS-8+ladder (ours) | 1.5e-05 | 6.5e-05 | 1.7e-04 | 9.5e-04 | 3.7e-03 |
+| MBP4+Qulid-8 (ours) | 3.0e-05 | 9.0e-05 | 3.9e-04 | 1.6e-03 | 7.8e-03 |
+| MBP4+Qulid-8+ladder (ours) | 1.5e-05 | 6.5e-05 | 1.7e-04 | 9.5e-04 | 3.7e-03 |
 | SOGRAND+XZ+ladder [Rapp et al. + ours] | 1.0e-04 | 0 (/20000) | 1.1e-03 | 5.5e-03 | 2.4e-02 |
 
 **[[576,32,≤16]] C16**, mean decode time per shot
@@ -331,8 +331,8 @@ of LRB-MS is not floor-free.**
 | SOGRAND+XZ [Rapp et al.] | 5.52 ms | 6.76 ms | 10.09 ms | 14.87 ms | 28.57 ms |
 | LEAD [Xiao et al.] | 17.73 ms | 27.45 ms | 36.94 ms | 53.91 ms | 57.58 ms |
 | LEAD α=0.01 [Xiao et al.] | 8.62 ms | 18.01 ms | 26.10 ms | 43.16 ms | 54.74 ms |
-| MBP4+LRB-MS-8 (ours) | 1.00 ms | 1.15 ms | 1.36 ms | 1.62 ms | 2.31 ms |
-| MBP4+LRB-MS-8+ladder (ours) | 1.02 ms | 1.17 ms | 1.41 ms | 1.82 ms | 3.03 ms |
+| MBP4+Qulid-8 (ours) | 1.00 ms | 1.15 ms | 1.36 ms | 1.62 ms | 2.31 ms |
+| MBP4+Qulid-8+ladder (ours) | 1.02 ms | 1.17 ms | 1.41 ms | 1.82 ms | 3.03 ms |
 | SOGRAND+XZ+ladder [Rapp et al. + ours] | 5.58 ms | 7.35 ms | 10.64 ms | 17.98 ms | 40.58 ms |
 
 **BB [[144,12,12]]**, logical error rate
@@ -342,7 +342,7 @@ of LRB-MS is not floor-free.**
 | BP+OSD-CS7 | 3.1e-03 | 1.1e-02 | 2.0e-02 |
 | MBP4+OSD-1 | 9.0e-05 | 6.0e-04 | 2.8e-03 |
 | GMBP4+OSD-1 [Mostad et al.] | 1.1e-04 | 4.1e-04 | 2.3e-03 |
-| MBP4+LRB-MS-6 (ours) | 1.0e-04 | 3.7e-04 | 1.5e-03 |
+| MBP4+Qulid-6 (ours) | 1.0e-04 | 3.7e-04 | 1.5e-03 |
 
 **BB [[144,12,12]]**, mean decode time per shot
 
@@ -351,7 +351,7 @@ of LRB-MS is not floor-free.**
 | BP+OSD-CS7 | 0.04 ms | 0.06 ms | 0.08 ms |
 | MBP4+OSD-1 | 0.30 ms | 0.33 ms | 0.41 ms |
 | GMBP4+OSD-1 [Mostad et al.] | 0.30 ms | 0.41 ms | 0.55 ms |
-| MBP4+LRB-MS-6 (ours) | 0.15 ms | 0.18 ms | 0.28 ms |
+| MBP4+Qulid-6 (ours) | 0.15 ms | 0.18 ms | 0.28 ms |
 
 ---
 [← back to the README](../../README.md)

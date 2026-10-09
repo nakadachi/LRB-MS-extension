@@ -4,7 +4,7 @@
   "shots": 1000000,
   "ms_per_shot": 0.2473347659850219,
   "code": "qt250",
-  "decoder": "MBP4+LRB-MS-8 (ours)",
+  "decoder": "MBP4+Qulid-8 (ours)",
   "p": 0.0296
  },
  {
@@ -12,7 +12,7 @@
   "shots": 1000000,
   "ms_per_shot": 0.3071356771829601,
   "code": "qt250",
-  "decoder": "MBP4+LRB-MS-12 (ours)",
+  "decoder": "MBP4+Qulid-12 (ours)",
   "p": 0.0296
  },
  {
@@ -20,7 +20,7 @@
   "shots": 1000000,
   "ms_per_shot": 0.3087471347166434,
   "code": "qt250",
-  "decoder": "MBP4+LRB-MS-12+ladder (ours)",
+  "decoder": "MBP4+Qulid-12+ladder (ours)",
   "p": 0.0296
  },
  {
@@ -36,7 +36,7 @@
   "shots": 2000000,
   "ms_per_shot": 0.20908318556991254,
   "code": "qt250",
-  "decoder": "MBP4+LRB-MS-8 (ours)",
+  "decoder": "MBP4+Qulid-8 (ours)",
   "p": 0.0224
  },
  {
@@ -44,7 +44,7 @@
   "shots": 2000000,
   "ms_per_shot": 0.2561246669437819,
   "code": "qt250",
-  "decoder": "MBP4+LRB-MS-12 (ours)",
+  "decoder": "MBP4+Qulid-12 (ours)",
   "p": 0.0224
  },
  {
@@ -52,7 +52,7 @@
   "shots": 2000000,
   "ms_per_shot": 0.2519708182966988,
   "code": "qt250",
-  "decoder": "MBP4+LRB-MS-12+ladder (ours)",
+  "decoder": "MBP4+Qulid-12+ladder (ours)",
   "p": 0.0224
  },
  {
@@ -68,7 +68,7 @@
   "shots": 4000000,
   "ms_per_shot": 0.18380753236083158,
   "code": "qt250",
-  "decoder": "MBP4+LRB-MS-8 (ours)",
+  "decoder": "MBP4+Qulid-8 (ours)",
   "p": 0.0169
  },
  {
@@ -76,7 +76,7 @@
   "shots": 4000000,
   "ms_per_shot": 0.28912823523249176,
   "code": "qt250",
-  "decoder": "MBP4+LRB-MS-12 (ours)",
+  "decoder": "MBP4+Qulid-12 (ours)",
   "p": 0.0169
  },
  {
@@ -84,7 +84,7 @@
   "shots": 4000000,
   "ms_per_shot": 0.29054024085776536,
   "code": "qt250",
-  "decoder": "MBP4+LRB-MS-12+ladder (ours)",
+  "decoder": "MBP4+Qulid-12+ladder (ours)",
   "p": 0.0169
  },
  {
@@ -100,7 +100,7 @@
   "shots": 14240000,
   "ms_per_shot": 0.2026791193501213,
   "code": "qt250",
-  "decoder": "MBP4+LRB-MS-8 (ours)",
+  "decoder": "MBP4+Qulid-8 (ours)",
   "p": 0.0097
  },
  {
@@ -108,7 +108,7 @@
   "shots": 19840000,
   "ms_per_shot": 0.25168366760956806,
   "code": "qt250",
-  "decoder": "MBP4+LRB-MS-12 (ours)",
+  "decoder": "MBP4+Qulid-12 (ours)",
   "p": 0.0097
  },
  {
@@ -116,7 +116,7 @@
   "shots": 24000000,
   "ms_per_shot": 0.25304393359522237,
   "code": "qt250",
-  "decoder": "MBP4+LRB-MS-12+ladder (ours)",
+  "decoder": "MBP4+Qulid-12+ladder (ours)",
   "p": 0.0097
  },
  {

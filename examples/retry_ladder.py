@@ -1,4 +1,4 @@
-"""Retry ladder for LRB-MS: on non-convergence, retry with another scaling, schedule or grouping.
+"""Retry ladder for Qulid: on non-convergence, retry with another scaling, schedule or grouping.
 
 1. Decode N shots with the base decoder; keep the failing shots.
 2. Split the failing shots into a training and a test half (by shot index parity).

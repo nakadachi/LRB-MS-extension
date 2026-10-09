@@ -1,6 +1,6 @@
 # Comparison with related generalized-check decoders
 
-Scripts for comparing LRB-MS with three related decoders for quantum Tanner codes, all built
+Scripts for comparing Qulid with three related decoders for quantum Tanner codes, all built
 in this package:
 
 | paper | decoder here |
@@ -40,7 +40,7 @@ python plot_results.py  # figure and tables for the write-up
 All decoders see the same depolarizing errors (p total, p/3 per Pauli) at each (code, p). A
 shot fails if a decoded half misses its syndrome or the residual flips a logical. Decode time
 is measured per shot on one core. The `decoders_*.json` files hold each decoder's settings:
-the papers' own for theirs, and the scaling for LRB-MS chosen on separate samples
+the papers' own for theirs, and the scaling for Qulid chosen on separate samples
 (`--seed-salt tune`).
 
 The other `decoders_*.json` files are the validation runs against the papers' reported

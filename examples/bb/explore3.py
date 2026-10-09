@@ -1,4 +1,4 @@
-"""Compare coset-based check groupings for LRB-MS on [[144,12,12]] (l = 12, m = 6).
+"""Compare coset-based check groupings for Qulid on [[144,12,12]] (l = 12, m = 6).
 
 Usage: python explore3.py
 """

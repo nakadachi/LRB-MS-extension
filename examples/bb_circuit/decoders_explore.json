@@ -9,7 +9,7 @@
   "osd_order": 7
  },
  {
-  "name": "LRB-MS time-pairs",
+  "name": "Qulid time-pairs",
   "kind": "lrbms",
   "groups": [
    "time",
@@ -17,7 +17,7 @@
   ]
  },
  {
-  "name": "LRB-MS greedy4",
+  "name": "Qulid greedy4",
   "kind": "lrbms",
   "groups": [
    "greedy",
@@ -25,7 +25,7 @@
   ]
  },
  {
-  "name": "LRB-MS greedy8",
+  "name": "Qulid greedy8",
   "kind": "lrbms",
   "groups": [
    "greedy",
@@ -33,7 +33,7 @@
   ]
  },
  {
-  "name": "LRB-MS space4",
+  "name": "Qulid space4",
   "kind": "lrbms",
   "groups": [
    "space",
@@ -42,7 +42,7 @@
   ]
  },
  {
-  "name": "LRB-MS space4x2rounds",
+  "name": "Qulid space4x2rounds",
   "kind": "lrbms",
   "groups": [
    "space",
@@ -51,7 +51,7 @@
   ]
  },
  {
-  "name": "LRB-MS space8",
+  "name": "Qulid space8",
   "kind": "lrbms",
   "groups": [
    "space",
@@ -60,7 +60,7 @@
   ]
  },
  {
-  "name": "LRB-MS greedy8 +OSD",
+  "name": "Qulid greedy8 +OSD",
   "kind": "lrbms",
   "groups": [
    "greedy",
@@ -70,7 +70,7 @@
   "osd_order": 7
  },
  {
-  "name": "LRB-MS space4x2 +OSD",
+  "name": "Qulid space4x2 +OSD",
   "kind": "lrbms",
   "groups": [
    "space",

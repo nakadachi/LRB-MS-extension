@@ -55,7 +55,7 @@
   }
  },
  {
-  "name": "LRB-MS-0 (vertex GCs)",
+  "name": "Qulid-0 (vertex GCs)",
   "kind": "lrbms",
   "groups": "vertex",
   "msf": 0.75,
@@ -64,7 +64,7 @@
   "chunk": 100
  },
  {
-  "name": "LRB-MS-8 (vertex GCs)",
+  "name": "Qulid-8 (vertex GCs)",
   "kind": "lrbms",
   "groups": "vertex",
   "msf": 0.75,

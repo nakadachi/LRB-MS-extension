@@ -2,7 +2,8 @@
 #define LDPC_LRBMS_HPP
 
 /**
- * LRB-MS: Least-Reliable-Basis Min-Sum decoding with generalized checks.
+ * Qulid (quantum least-reliable list decoding, formerly LRB-MS: Least-Reliable-Basis Min-Sum)
+ * decoding with generalized checks.
  *
  * The rows of the parity-check matrix H are partitioned (or covered) by
  * "generalized checks" (GCs). A GC c groups ell_c rows of H; its local

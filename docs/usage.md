@@ -15,7 +15,7 @@ Installation and a minimal example are in the [README](../README.md#quickstart).
 
 ## Ensemble over groupings
 
-`LrbmsEnsembleDecoder` runs LRB-MS once per check grouping and returns the syndrome-valid output
+`LrbmsEnsembleDecoder` runs Qulid once per check grouping and returns the syndrome-valid output
 with the lowest channel cost. Different groupings put the GC boundaries in different places, so
 their failures are only weakly correlated. This helps most on codes without a natural local-code
 structure, such as bivariate bicycle codes (see [the BB benchmark](benchmarks/bb_codes.md)).
@@ -50,17 +50,17 @@ at a fraction of the cost:
 | [[288,12,18]], 0.06 | 1.30e-2, 5.6 ms | **1.32e-2, 2.9 ms** | 1.95e-2, 1.9 ms |
 | [[756,16,≤34]], 0.065 | 4.0e-3, 15.9 ms | **4.0e-3, 5.9 ms** | 6.5e-3, 3.3 ms |
 
-Escalate costs about 3–4× a single LRB-MS decode, instead of about 8× for "all". The groupings
+Escalate costs about 3–4× a single Qulid decode, instead of about 8× for "all". The groupings
 are independent, so running them in parallel would cut the latency further. Capping `max_iter`
 per grouping helps on some codes: on [[288,12,18]], 10 iterations kept the accuracy and cut the
 "all" time by about 37%. It hurts on others: on [[756,16,≤34]] more groupings fall back to OSD,
 and the time grows. The script is `examples/bb/ensemble_policies.py`. The BB benchmark tables were measured with "all" and "first".
 
-## MBP4 + LRB-MS hybrid (depolarizing noise)
+## MBP4 + Qulid hybrid (depolarizing noise)
 
 `MbpLrbmsDecoder` decodes the X and Z parts of a CSS-code error jointly. Each qubit keeps
 quaternary log-ratios Γᵂ = ln P(I)/P(W), for W = X, Y, Z, updated with the MBP4 rule of
-Kuo and Lai. The checks are LRB-MS generalized checks, grouped within one check type: a Z-type
+Kuo and Lai. The checks are Qulid generalized checks, grouped within one check type: a Z-type
 group sees only the x-part of each qubit's error, and an X-type group only the z-part. The
 decoder has two scaling knobs:
 
@@ -69,7 +69,7 @@ decoder has two scaling knobs:
   back to a check subtracts that check's previous output without the 1/α factor, which is
   MBP's memory / inhibition effect for α < 1.
 
-With p_Y = p_Z = 0 and α = 1, the decoder reproduces binary LRB-MS exactly (tested).
+With p_Y = p_Z = 0 and α = 1, the decoder reproduces binary Qulid exactly (tested).
 
 ```python
 from ldpc.lrbms_decoder import MbpLrbmsDecoder
@@ -94,7 +94,7 @@ Every decoder takes one of four rules for its generalized checks:
 
 | `gc_method` | rule | cost per check update |
 |---|---|---|
-| `"lrbms"` (default) | max-log over a least-reliable-basis candidate list of order `lrbms_order` | Gaussian elimination plus a short list |
+| `"qulid"` = `"lrbms"` (default) | Qulid: max-log over a least-reliable-basis candidate list of order `lrbms_order` | Gaussian elimination plus a short list |
 | `"trellis"` | exact max-log over the local coset (syndrome trellis) | 2^ℓ states per bit |
 | `"map"` | exact sum-product (BCJR) over the same trellis: the generalized check of Mostad, Rosnes and Lin (arXiv:2603.05486) | 2^ℓ states per bit |
 | `"sogrand"` | soft-output GRAND list decoding (Rapp et al., arXiv:2603.18318) | about 2^rank × list size pattern queries |
@@ -148,11 +148,11 @@ pytest python_test/test_lrbms.py
 The tests check that:
 - `ell = 1` reproduces min-sum BP exactly.
 - The trellis matches brute-force max-log.
-- LRB-MS is exact whenever its candidate list covers the coset.
+- Qulid is exact whenever its candidate list covers the coset.
 - The OSD fallback works.
 - The ensemble returns the cheapest valid member output, and `stop="escalate"` matches `"all"`
   whenever the first grouping fails.
-- The MBP4 + LRB-MS hybrid reproduces binary LRB-MS for pure X noise with α = 1.
+- The MBP4 + Qulid hybrid reproduces binary Qulid for pure X noise with α = 1.
 - The MAP rule equals brute-force sum-product marginals, and with single-row groups equals
   `ldpc`'s product-sum BP.
 - SOGRAND matches an independent Python transcription of the algorithm, and equals the MAP rule

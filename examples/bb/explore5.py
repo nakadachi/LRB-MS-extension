@@ -1,4 +1,4 @@
-"""BP, BP+OSD, single LRB-MS and LRB-MS grouping ensembles on a BB code.
+"""BP, BP+OSD, single Qulid and Qulid grouping ensembles on a BB code.
 
 Usage: python explore5.py "[[144,12,12]]" 0.04,0.05 4000
 """
@@ -17,9 +17,9 @@ def specs_for(code):
     return [
         ("BP (min-sum)", dict(kind="bp")),
         ("BP+OSD-CS7", dict(kind="bposd")),
-        ("LRB-MS greedy8", dict(kind="lrbms", groups=8)),
-        ("LRB-MS x-cosets", dict(kind="lrbms", groups=x_cosets)),
-        ("LRB-MS greedy8 +OSD", dict(kind="lrbms", groups=8, **OSD)),
+        ("Qulid greedy8", dict(kind="lrbms", groups=8)),
+        ("Qulid x-cosets", dict(kind="lrbms", groups=x_cosets)),
+        ("Qulid greedy8 +OSD", dict(kind="lrbms", groups=8, **OSD)),
         ("ens2 greedy8 all +OSD", dict(kind="ensemble", ell=8, count=2, stop="all", **OSD)),
         ("ens4 greedy8 first +OSD", dict(kind="ensemble", ell=8, count=4, stop="first", **OSD)),
         ("ens4 greedy8 all +OSD", dict(kind="ensemble", ell=8, count=4, stop="all", **OSD)),
