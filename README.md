@@ -1,6 +1,6 @@
 # Qulid: quantum least-reliable list decoding
 
-**Qulid** (pronounced like *Euclid*; formerly LRB-MS, least-reliable-basis min-sum) decodes with
+**Qulid** (pronounced like *CUElid*; formerly LRB-MS, least-reliable-basis min-sum) decodes with
 *generalized checks* whose soft outputs come from a list of candidates built on the least-reliable
 basis. The Python classes keep their original names (`LrbmsDecoder`, ...) and are also exported as
 `QulidDecoder`, `QulidEnsembleDecoder` and `MbpQulidDecoder`; `gc_method="qulid"` is an alias of
